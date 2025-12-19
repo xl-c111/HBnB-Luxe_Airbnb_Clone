@@ -21,15 +21,14 @@ primary_region = "iad" # US East (Virginia) - closest to PlanetScale
   auto_start_machines = true
   min_machines_running = 1
 
-  # Health check
-  [http_service.checks]
-    [http_service.checks.alive]
-      type = "http"
-      method = "GET"
-      path = "/api/v1/status"
-      interval = "30s"
-      timeout = "5s"
-      grace_period = "10s"
+# Health checks
+[[http_service.checks]]
+  type = "http"
+  method = "GET"
+  path = "/api/v1/status"
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"
 
 # VM resources (free tier)
 [[vm]]
