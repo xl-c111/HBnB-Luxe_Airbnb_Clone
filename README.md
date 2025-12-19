@@ -1,10 +1,10 @@
 # HBnB - Luxe Airbnb Clone
 
-A production-ready two-sided marketplace rental platform demonstrating full-stack development with React, Flask, and AWS deployment. Implements Stripe payment processing, JWT authentication, multi-tenant architecture, and real-time booking management with comprehensive host analytics.
+A production-ready two-sided marketplace rental platform demonstrating full-stack development with React, Flask, and serverless deployment. Implements Stripe payment processing, JWT authentication, multi-tenant architecture, and real-time booking management with comprehensive host analytics. **Deployed on a $0/month free tier stack** with 24/7 uptime.
 
 <div align="center">
 
-**🚀 [View Live Demo](https://d2gfqpg21nkiyl.cloudfront.net)** | Deployed on AWS with CloudFront - mobile-ready
+**🚀 [View Live Demo](https://hbnb-frontend.vercel.app)** | Vercel + Fly.io + PlanetScale - mobile-ready
 
 ![HBnB screenshot](frontend/public/hbnb.png)
 
@@ -14,12 +14,25 @@ A production-ready two-sided marketplace rental platform demonstrating full-stac
 
 ## Architecture
 
-### AWS Infrastructure
-- **Frontend:** S3 + CloudFront (global CDN)
-- **Backend:** EC2 instance + Application Load Balancer
-- **Database:** RDS MySQL (Multi-AZ for high availability)
-- **CDN:** CloudFront for both frontend and backend API
-- **IaC:** Terraform for infrastructure management
+### Current Infrastructure (2025) - **$0/month**
+
+**Production Stack:**
+- **Frontend:** Vercel (React + Vite, Global CDN, 100GB bandwidth/month)
+- **Backend:** Fly.io (Flask + Gunicorn, 3 VMs, 24/7 uptime)
+- **Database:** PlanetScale (Serverless MySQL, 5GB storage, 1B reads/month)
+- **Cost:** **$0/month** (permanent free tier)
+- **Uptime:** 24/7 with no cold starts
+
+**Why This Stack:**
+- ✅ Free forever (not just 12-month trial)
+- ✅ Production-grade infrastructure (powers companies like GitHub, Slack)
+- ✅ Auto-scaling and global edge network
+- ✅ Zero maintenance overhead
+- ✅ Better developer experience than traditional cloud
+
+### Legacy AWS Infrastructure (Archived)
+
+Previous deployment used AWS with Terraform (EC2, RDS, S3, CloudFront). Migrated to reduce costs from $25-30/month to $0/month while maintaining production quality and 24/7 uptime. See [`infrastructure/legacy-aws/`](infrastructure/legacy-aws/) for details.
 
 ### Tech Stack
 **Backend:**
@@ -38,10 +51,12 @@ A production-ready two-sided marketplace rental platform demonstrating full-stac
 - React DatePicker for booking dates
 
 **DevOps:**
-- Terraform for infrastructure as code
-- AWS CloudWatch for monitoring
+- **Current:** Vercel + Fly.io deployment (serverless/edge)
+- **Legacy:** Terraform for AWS infrastructure as code (archived)
+- Multi-cloud experience (AWS, Vercel, Fly.io, PlanetScale)
 - Environment-based configuration (.env files)
 - Pinned Python dependencies via `requirements-constraints.txt` for reproducible deploys
+- Docker containerization for backend
 
 ---
 
@@ -277,45 +292,87 @@ terraform/
 
 ## Deployment
 
-### Automated CI/CD (GitHub Actions)
+### Current Production Deployment (Vercel + Fly.io + PlanetScale)
 
-The project includes automated deployment via GitHub Actions:
+**Complete deployment guide:** See [`infrastructure/current/DEPLOYMENT.md`](infrastructure/current/DEPLOYMENT.md) for step-by-step instructions.
+
+**Quick Deploy:**
+
+```bash
+# 1. Deploy Database (PlanetScale)
+pscale auth login
+pscale database create hbnb-db --region us-east
+# Import data and get connection string
+
+# 2. Deploy Backend (Fly.io)
+cd backend
+fly auth login
+fly launch --config ../infrastructure/current/fly.toml
+fly secrets set SQLALCHEMY_DATABASE_URI="mysql+pymysql://..."
+fly deploy
+
+# 3. Deploy Frontend (Vercel)
+cd ../frontend
+vercel login
+vercel --prod
+# Set environment variables: VITE_API_URL, VITE_STRIPE_PUBLISHABLE_KEY
+```
+
+**Benefits:**
+- ✅ **$0/month cost** (vs $25-30/month on AWS)
+- ✅ **24/7 uptime** with no cold starts
+- ✅ **Auto-scaling** included
+- ✅ **Global CDN** for frontend
+- ✅ **Free forever** (not trial)
+
+**Live URLs:**
+- Frontend: `https://hbnb-frontend.vercel.app`
+- Backend API: `https://hbnb-backend.fly.dev`
+
+---
+
+### Legacy AWS Deployment (Archived)
+
+<details>
+<summary><strong>Previous AWS deployment with GitHub Actions CI/CD</strong></summary>
+
+The project previously used automated deployment via GitHub Actions to AWS:
 
 **Setup:**
 1. Follow the guide in `.github/SETUP_SECRETS.md` to configure GitHub secrets
 2. Push to `main` branch to trigger automatic deployment
 3. Or manually trigger from the Actions tab
 
-**What it does:**
+**What it did:**
 - ✅ Runs backend tests
 - ✅ Deploys backend to EC2
 - ✅ Builds and deploys frontend to S3
 - ✅ Invalidates CloudFront cache
 
-See `.github/workflows/deploy.yml` for the full workflow.
+**Manual AWS Deployment:**
 
----
-
-### Manual Deployment
-
-#### Deploy Frontend
 ```bash
+# Deploy Frontend
 cd frontend
-npm run build                    # Build with Vite
+npm run build
 aws s3 sync dist/ s3://hbnb-frontend/ --delete
 aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
-```
 
-### Deploy Backend
-```bash
-# SSH into EC2 instance
+# Deploy Backend
 ssh -i your-key.pem ubuntu@YOUR_EC2_IP
-
-# Pull latest code and restart
 cd /home/ubuntu/holbertonschool-hbnb
 git pull origin main
 sudo systemctl restart hbnb
 ```
+
+**Migration Rationale:**
+- AWS free tier expires after 12 months
+- Ongoing cost: $25-30/month
+- New stack achieves same production quality at $0/month permanently
+
+See [`infrastructure/legacy-aws/`](infrastructure/legacy-aws/) for Terraform configuration.
+
+</details>
 
 ---
 
@@ -374,11 +431,16 @@ See `API_DOCUMENTATION_GUIDE.md` for detailed usage.
 - **Get JWT token**: `cd backend && python3 get_token.py`
 - **View API docs**: http://localhost:5000/doc
 
-**Production:**
-- **Frontend not updating?** Check CloudFront cache invalidation status
-- **Backend 502 error?** Check EC2 instance status and application logs
-- **Database connection?** Verify RDS security group allows EC2 access
-- **Payment failing?** Verify Stripe API keys are correct in backend `.env`
+**Production (Vercel + Fly.io + PlanetScale):**
+- **Frontend not updating?** `vercel --prod` to redeploy, check Vercel dashboard
+- **Backend 502 error?** `fly logs` to check errors, `fly status` for app health
+- **Database connection?** Verify PlanetScale connection string in `fly secrets list`
+- **Payment failing?** Verify Stripe API keys in Fly.io secrets
+- **CORS errors?** Update backend CORS config with Vercel domain
+- See [`infrastructure/current/DEPLOYMENT.md`](infrastructure/current/DEPLOYMENT.md) for detailed troubleshooting
+
+**Legacy AWS Production:**
+- See collapsed section in [Deployment](#deployment) for AWS troubleshooting
 
 ---
 
@@ -391,13 +453,17 @@ See `API_DOCUMENTATION_GUIDE.md` for detailed usage.
 - Host dashboard with revenue analytics
 - Review submission and display system
 - JWT authentication with role-based access
-- AWS deployment with Terraform (EC2, RDS, S3, CloudFront)
-- HTTPS via CloudFront
+- **Production deployment on $0/month free tier** (Vercel + Fly.io + PlanetScale)
+- **Infrastructure migration** (AWS → Serverless, $25-30/month → $0/month)
+- Multi-cloud deployment experience (AWS, Vercel, Fly.io, PlanetScale)
+- Docker containerization for backend
+- AWS deployment with Terraform (archived in `infrastructure/legacy-aws/`)
+- HTTPS with auto-SSL certificates
 - Responsive React 19 UI with Tailwind CSS
 - Real-time availability checking
 - Comprehensive testing (Backend: Pytest, Frontend: Vitest)
 - Interactive API documentation (Swagger UI)
-- CI/CD pipeline (GitHub Actions)
+- CI/CD pipeline (GitHub Actions for AWS deployment)
 
 **🚧 Future Enhancements:**
 - Image uploads for properties (S3 integration)

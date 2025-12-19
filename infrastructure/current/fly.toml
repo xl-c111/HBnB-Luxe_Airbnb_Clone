@@ -1,0 +1,46 @@
+# Fly.io configuration for HBnB Backend
+# Docs: https://fly.io/docs/reference/configuration/
+
+app = "hbnb-backend"
+primary_region = "iad" # US East (Virginia) - closest to PlanetScale
+
+# Build configuration
+[build]
+  dockerfile = "../../backend/Dockerfile"
+
+# Environment variables (non-sensitive)
+[env]
+  PORT = "8080"
+  FLASK_ENV = "production"
+
+# HTTP service configuration
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false  # Keep running 24/7
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # Health check
+  [http_service.checks]
+    [http_service.checks.alive]
+      type = "http"
+      method = "GET"
+      path = "/api/v1/status"
+      interval = "30s"
+      timeout = "5s"
+      grace_period = "10s"
+
+# VM resources (free tier)
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+# Secrets (set via: fly secrets set KEY=value)
+# Required secrets:
+# - SECRET_KEY
+# - JWT_SECRET_KEY
+# - SQLALCHEMY_DATABASE_URI (PlanetScale connection string)
+# - STRIPE_SECRET_KEY
+# - STRIPE_PUBLISHABLE_KEY
