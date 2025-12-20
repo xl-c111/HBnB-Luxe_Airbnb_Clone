@@ -124,28 +124,28 @@ class PlaceList(Resource):
         except ValueError as e:
             return {'error': str(e)}, 400
 
-    @api.doc(
-        description='Retrieve all property listings with amenities and reviews',
-        responses={
-            200: ('List of places', [place_model])
-        }
-    )
     def get(self):
         """Get all property listings"""
-        places = facade.get_all_places()
+        from app.extensions import db
+        from app.models.place import Place
+
+        # Direct SQL query bypass all ORM complexity
+        places_query = db.session.query(Place).all()
+
         result = []
-        for place in places:
+        for p in places_query:
             result.append({
-                "id": str(place.id) if place.id else None,
-                "title": str(place.title) if place.title else "",
-                "description": str(place.description) if place.description else "",
-                "price": float(place.price) if place.price else 0.0,
-                "latitude": float(place.latitude) if place.latitude else 0.0,
-                "longitude": float(place.longitude) if place.longitude else 0.0,
-                "owner_id": str(place.owner_id) if hasattr(place, 'owner_id') and place.owner_id else None,
+                "id": p.id,
+                "title": p.title,
+                "description": p.description,
+                "price": p.price,
+                "latitude": p.latitude,
+                "longitude": p.longitude,
+                "owner_id": p.owner_id,
                 "amenities": [],
                 "reviews": []
             })
+
         return result, 200
 
 
@@ -159,14 +159,13 @@ class PlaceResource(Resource):
             404: ('Place not found', error_model)
         }
     )
-    @api.marshal_with(place_model)
     def get(self, place_id):
         """Get property details by ID"""
         places = facade.get_place_with_details(place_id)
         if not places:
             return {"error": "Place not found"}, 404
         # Fetch the place by ID
-        return serialize_place(places)
+        return serialize_place(places), 200
 
     @api.doc(
         description='Update property details (owner only)',
@@ -182,7 +181,6 @@ class PlaceResource(Resource):
     )
     @jwt_required()
     @api.expect(place_input_model)
-    @api.marshal_with(place_model)
     def put(self, place_id):
         """Update property listing (owner only)"""
         place = facade.get_place(place_id)
@@ -196,7 +194,7 @@ class PlaceResource(Resource):
             return {"error": "User not found"}, 404
         try:
             updated_place = place.update_by_owner_or_admin(user, **data)
-            return serialize_place(updated_place)
+            return serialize_place(updated_place), 200
         except PermissionError as e:
             return {"error": str(e)}, 403
 

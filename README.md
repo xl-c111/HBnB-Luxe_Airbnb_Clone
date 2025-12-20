@@ -1,10 +1,10 @@
 # HBnB - Luxe Airbnb Clone
 
-A production-ready two-sided marketplace rental platform demonstrating full-stack development with React, Flask, and serverless deployment. Implements Stripe payment processing, JWT authentication, multi-tenant architecture, and real-time booking management with comprehensive host analytics. **Deployed on a $0/month free tier stack** with 24/7 uptime.
+A production-ready two-sided marketplace rental platform demonstrating full-stack development with React, Flask, and serverless deployment. Implements Stripe payment processing, JWT authentication, multi-tenant architecture, and real-time booking management with comprehensive host analytics.
 
 <div align="center">
 
-**🚀 [View Live Demo](https://hbnb-frontend.vercel.app)** | Vercel + Fly.io + PlanetScale - mobile-ready
+**🚀 [View Live Demo](https://hbnb-luxeairbnbclone.vercel.app)** | Vercel + Fly.io + PlanetScale - mobile-ready
 
 ![HBnB screenshot](frontend/public/hbnb.png)
 
@@ -14,25 +14,10 @@ A production-ready two-sided marketplace rental platform demonstrating full-stac
 
 ## Architecture
 
-### Current Infrastructure (2025) - **$0/month**
-
-**Production Stack:**
-- **Frontend:** Vercel (React + Vite, Global CDN, 100GB bandwidth/month)
-- **Backend:** Fly.io (Flask + Gunicorn, 3 VMs, 24/7 uptime)
-- **Database:** PlanetScale (Serverless MySQL, 5GB storage, 1B reads/month)
-- **Cost:** **$0/month** (permanent free tier)
-- **Uptime:** 24/7 with no cold starts
-
-**Why This Stack:**
-- ✅ Free forever (not just 12-month trial)
-- ✅ Production-grade infrastructure (powers companies like GitHub, Slack)
-- ✅ Auto-scaling and global edge network
-- ✅ Zero maintenance overhead
-- ✅ Better developer experience than traditional cloud
-
-### Legacy AWS Infrastructure (Archived)
-
-Previous deployment used AWS with Terraform (EC2, RDS, S3, CloudFront). Migrated to reduce costs from $25-30/month to $0/month while maintaining production quality and 24/7 uptime. See [`infrastructure/legacy-aws/`](infrastructure/legacy-aws/) for details.
+**Production Infrastructure:**
+- **Frontend:** Vercel (React + Vite, Global CDN)
+- **Backend:** Fly.io (Flask + Gunicorn, containerized deployment)
+- **Database:** PlanetScale (Serverless MySQL)
 
 ### Tech Stack
 **Backend:**
@@ -51,12 +36,10 @@ Previous deployment used AWS with Terraform (EC2, RDS, S3, CloudFront). Migrated
 - React DatePicker for booking dates
 
 **DevOps:**
-- **Current:** Vercel + Fly.io deployment (serverless/edge)
-- **Legacy:** Terraform for AWS infrastructure as code (archived)
-- Multi-cloud experience (AWS, Vercel, Fly.io, PlanetScale)
+- Vercel + Fly.io deployment (serverless/edge)
+- Docker containerization for backend
 - Environment-based configuration (.env files)
 - Pinned Python dependencies via `requirements-constraints.txt` for reproducible deploys
-- Docker containerization for backend
 
 ---
 
@@ -82,29 +65,29 @@ Previous deployment used AWS with Terraform (EC2, RDS, S3, CloudFront). Migrated
    ```
 
 2. **Backend**
-```bash
-cd backend
+   ```bash
+   cd backend
 
-# Setup environment variables
-cp .env.example .env
-# Add required secrets to .env:
-# SECRET_KEY=super-secret-string
-# JWT_SECRET_KEY=jwt-secret-string
-# STRIPE_SECRET_KEY=sk_test_...
-# STRIPE_PUBLISHABLE_KEY=pk_test_...
-# SQLALCHEMY_DATABASE_URI=mysql+pymysql://hbnb_user:1234@localhost:3306/hbnb_db
+   # Setup environment variables
+   cp .env.example .env
+   # Add required secrets to .env:
+   # SECRET_KEY=super-secret-string
+   # JWT_SECRET_KEY=jwt-secret-string
+   # STRIPE_SECRET_KEY=sk_test_...
+   # STRIPE_PUBLISHABLE_KEY=pk_test_...
+   # SQLALCHEMY_DATABASE_URI=mysql+pymysql://hbnb_user:1234@localhost:3306/hbnb_db
 
-# Install Python dependencies inside a virtual environment
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+   # Install Python dependencies inside a virtual environment
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
 
-# Add sample data (creates 3 hosts, 6 properties, 3 guests, 6 reviews)
-python3 ../scripts/add_sample_data.py
+   # Add sample data (creates 3 hosts, 6 properties, 3 guests, 6 reviews)
+   python3 ../scripts/add_sample_data.py
 
-# Start API server
-python3 run.py  # Runs at http://127.0.0.1:5000
-```
+   # Start API server
+   python3 run.py  # Runs at http://127.0.0.1:5000
+   ```
 
 3. **Frontend**
    ```bash
@@ -247,11 +230,12 @@ frontend/
 
 scripts/
 ├── add_sample_data.py      # Populate DB with test data
-└── cleanup_test_places.py  # Remove test properties
+└── setup_and_run.sh        # Quick local development setup
 
-terraform/
-├── main.tf                 # AWS infrastructure (EC2, RDS, S3, CloudFront)
-└── .gitignore             # Exclude providers and state files
+infrastructure/
+└── current/
+    ├── fly.toml           # Fly.io backend configuration
+    └── DEPLOYMENT.md      # Production deployment guide
 ```
 
 </details>
@@ -292,8 +276,6 @@ terraform/
 
 ## Deployment
 
-### Current Production Deployment (Vercel + Fly.io + PlanetScale)
-
 **Complete deployment guide:** See [`infrastructure/current/DEPLOYMENT.md`](infrastructure/current/DEPLOYMENT.md) for step-by-step instructions.
 
 **Quick Deploy:**
@@ -318,61 +300,15 @@ vercel --prod
 # Set environment variables: VITE_API_URL, VITE_STRIPE_PUBLISHABLE_KEY
 ```
 
-**Benefits:**
-- ✅ **$0/month cost** (vs $25-30/month on AWS)
-- ✅ **24/7 uptime** with no cold starts
-- ✅ **Auto-scaling** included
-- ✅ **Global CDN** for frontend
-- ✅ **Free forever** (not trial)
+**Production Features:**
+- 24/7 uptime with no cold starts
+- Auto-scaling included
+- Global CDN for frontend
+- Containerized deployment
 
 **Live URLs:**
-- Frontend: `https://hbnb-frontend.vercel.app`
-- Backend API: `https://hbnb-backend.fly.dev`
-
----
-
-### Legacy AWS Deployment (Archived)
-
-<details>
-<summary><strong>Previous AWS deployment with GitHub Actions CI/CD</strong></summary>
-
-The project previously used automated deployment via GitHub Actions to AWS:
-
-**Setup:**
-1. Follow the guide in `.github/SETUP_SECRETS.md` to configure GitHub secrets
-2. Push to `main` branch to trigger automatic deployment
-3. Or manually trigger from the Actions tab
-
-**What it did:**
-- ✅ Runs backend tests
-- ✅ Deploys backend to EC2
-- ✅ Builds and deploys frontend to S3
-- ✅ Invalidates CloudFront cache
-
-**Manual AWS Deployment:**
-
-```bash
-# Deploy Frontend
-cd frontend
-npm run build
-aws s3 sync dist/ s3://hbnb-frontend/ --delete
-aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
-
-# Deploy Backend
-ssh -i your-key.pem ubuntu@YOUR_EC2_IP
-cd /home/ubuntu/holbertonschool-hbnb
-git pull origin main
-sudo systemctl restart hbnb
-```
-
-**Migration Rationale:**
-- AWS free tier expires after 12 months
-- Ongoing cost: $25-30/month
-- New stack achieves same production quality at $0/month permanently
-
-See [`infrastructure/legacy-aws/`](infrastructure/legacy-aws/) for Terraform configuration.
-
-</details>
+- Frontend: https://hbnb-luxeairbnbclone.vercel.app
+- Backend API: https://hbnb-backend.fly.dev
 
 ---
 
@@ -431,16 +367,13 @@ See `API_DOCUMENTATION_GUIDE.md` for detailed usage.
 - **Get JWT token**: `cd backend && python3 get_token.py`
 - **View API docs**: http://localhost:5000/doc
 
-**Production (Vercel + Fly.io + PlanetScale):**
+**Production:**
 - **Frontend not updating?** `vercel --prod` to redeploy, check Vercel dashboard
 - **Backend 502 error?** `fly logs` to check errors, `fly status` for app health
 - **Database connection?** Verify PlanetScale connection string in `fly secrets list`
 - **Payment failing?** Verify Stripe API keys in Fly.io secrets
 - **CORS errors?** Update backend CORS config with Vercel domain
 - See [`infrastructure/current/DEPLOYMENT.md`](infrastructure/current/DEPLOYMENT.md) for detailed troubleshooting
-
-**Legacy AWS Production:**
-- See collapsed section in [Deployment](#deployment) for AWS troubleshooting
 
 ---
 
@@ -453,27 +386,22 @@ See `API_DOCUMENTATION_GUIDE.md` for detailed usage.
 - Host dashboard with revenue analytics
 - Review submission and display system
 - JWT authentication with role-based access
-- **Production deployment on $0/month free tier** (Vercel + Fly.io + PlanetScale)
-- **Infrastructure migration** (AWS → Serverless, $25-30/month → $0/month)
-- Multi-cloud deployment experience (AWS, Vercel, Fly.io, PlanetScale)
+- Production deployment (Vercel + Fly.io + PlanetScale)
 - Docker containerization for backend
-- AWS deployment with Terraform (archived in `infrastructure/legacy-aws/`)
 - HTTPS with auto-SSL certificates
 - Responsive React 19 UI with Tailwind CSS
 - Real-time availability checking
 - Comprehensive testing (Backend: Pytest, Frontend: Vitest)
 - Interactive API documentation (Swagger UI)
-- CI/CD pipeline (GitHub Actions for AWS deployment)
 
 **🚧 Future Enhancements:**
-- Image uploads for properties (S3 integration)
+- Image uploads for properties
 - Email notifications (booking confirmations)
 - Real-time messaging between hosts and guests
 - Advanced search with filters (location, amenities, price range)
 - Calendar blocking for unavailable dates
 - Increase test coverage to 80%+
 - Database migrations (Flask-Migrate)
-- Rate limiting and input sanitization
 
 ---
 

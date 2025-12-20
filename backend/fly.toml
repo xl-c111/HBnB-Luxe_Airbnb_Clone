@@ -7,9 +7,6 @@ app = 'hbnb-backend'
 primary_region = 'iad'
 
 [build]
-  dockerfile = '../../backend/Dockerfile'
-  build-target = ''
-  ignorefile = '../../backend/.dockerignore'
 
 [env]
   FLASK_ENV = 'production'

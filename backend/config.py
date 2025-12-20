@@ -28,7 +28,29 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+
+    # Fix DATABASE_URL to use PyMySQL driver explicitly and remove SSL from URL
+    _db_url = os.getenv('DATABASE_URL')
+    if _db_url:
+        # Replace mysql:// with mysql+pymysql://
+        if _db_url.startswith('mysql://'):
+            _db_url = _db_url.replace('mysql://', 'mysql+pymysql://', 1)
+        # Remove ?ssl=true or &ssl=true from URL (will be handled in engine options)
+        import re
+        _db_url = re.sub(r'[?&]ssl=(true|True|1)', '', _db_url)
+        # Clean up any trailing ? or &
+        _db_url = re.sub(r'[?&]$', '', _db_url)
+        SQLALCHEMY_DATABASE_URI = _db_url
+    else:
+        SQLALCHEMY_DATABASE_URI = None
+
+    # Configure SSL for PyMySQL
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'connect_args': {
+            'ssl': {'ssl_mode': 'REQUIRED'}
+        }
+    }
+
     SECRET_KEY = os.getenv('SECRET_KEY')
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY') or SECRET_KEY
 
