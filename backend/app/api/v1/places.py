@@ -130,21 +130,23 @@ class PlaceList(Resource):
             200: ('List of places', [place_model])
         }
     )
-    # @api.marshal_list_with(place_model)  # Temporarily disabled for debugging
     def get(self):
         """Get all property listings"""
-        # Simple test - return hardcoded data
-        return [{
-            "id": "test-123",
-            "title": "Test Place",
-            "description": "Test description",
-            "price": 100.0,
-            "latitude": 0.0,
-            "longitude": 0.0,
-            "owner_id": "owner-123",
-            "amenities": [],
-            "reviews": []
-        }], 200
+        places = facade.get_all_places()
+        result = []
+        for place in places:
+            result.append({
+                "id": str(place.id) if place.id else None,
+                "title": str(place.title) if place.title else "",
+                "description": str(place.description) if place.description else "",
+                "price": float(place.price) if place.price else 0.0,
+                "latitude": float(place.latitude) if place.latitude else 0.0,
+                "longitude": float(place.longitude) if place.longitude else 0.0,
+                "owner_id": str(place.owner_id) if hasattr(place, 'owner_id') and place.owner_id else None,
+                "amenities": [],
+                "reviews": []
+            })
+        return result, 200
 
 
 @api.route('/<string:place_id>')
