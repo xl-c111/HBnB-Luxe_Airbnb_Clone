@@ -1,10 +1,7 @@
 from flask_restx import Namespace, Resource, fields
-from flask import request
 from app.services import facade
-from app.models.review import Review
 from app.models.user import User
 from app.extensions import db
-from flask_login import current_user
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 api = Namespace('reviews', description='Review operations')
@@ -107,7 +104,6 @@ class ReviewResource(Resource):
         except ValueError as e:
             return {'error': str(e)}, 400
 
-
     @jwt_required()
     @api.response(200, 'Review deleted successfully')
     @api.response(404, 'Review not found')
@@ -143,7 +139,7 @@ class PlaceReviewList(Resource):
                 'place_id': place_id,
                 'total_reviews': 0,
                 'reviews': []
-            },200
+            }, 200
 
         # Format and return reviews
 
@@ -156,7 +152,7 @@ class PlaceReviewList(Resource):
         } for r in reviews]
 
         return {
-        'place_id': place_id,
-        'total_reviews': len(review_list),
-        'reviews': review_list
-    }, 200
+            'place_id': place_id,
+            'total_reviews': len(review_list),
+            'reviews': review_list
+        }, 200

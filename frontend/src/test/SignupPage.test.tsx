@@ -34,13 +34,13 @@ describe('SignUpPage', () => {
     expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign up' })).toBeInTheDocument();
   });
 
   it('shows validation errors for empty required fields', async () => {
     render(<SignUpPage />, { wrapper });
 
-    const submitButton = screen.getByRole('button', { name: /sign up/i });
+    const submitButton = screen.getByRole('button', { name: 'Sign up' });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -103,8 +103,12 @@ describe('SignUpPage', () => {
     fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: 'SecurePass123!' },
     });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
+      target: { value: 'SecurePass123!' },
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
+    const submitButton = screen.getByRole('button', { name: 'Sign up' });
+    fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -136,8 +140,12 @@ describe('SignUpPage', () => {
     fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: 'SecurePass123!' },
     });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
+      target: { value: 'SecurePass123!' },
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
+    const submitButton = screen.getByRole('button', { name: 'Sign up' });
+    fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText(/email already registered/i)).toBeInTheDocument();

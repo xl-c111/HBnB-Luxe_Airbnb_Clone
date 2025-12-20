@@ -104,7 +104,7 @@ class CreatePaymentIntent(Resource):
 
         except stripe.error.StripeError as e:
             return {'error': str(e)}, 400
-        except Exception as e:
+        except Exception:
             return {'error': 'Payment processing failed'}, 500
 
 
@@ -126,5 +126,5 @@ class VerifyPayment(Resource):
 
         except stripe.error.StripeError as e:
             return {'error': str(e)}, 400
-        except Exception as e:
+        except Exception:
             return {'error': 'Payment verification failed'}, 500

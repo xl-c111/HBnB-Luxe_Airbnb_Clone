@@ -19,6 +19,7 @@ user_update_model = api.model('UserUpdate', {
     'home_location': fields.String(required=False, description='Home base or location')
 })
 
+
 def serialize_user(user):
     return {
         'id': user.id,
@@ -28,6 +29,7 @@ def serialize_user(user):
         'phone_number': user.phone_number,
         'home_location': user.home_location
     }
+
 
 @api.route('/')
 class UserList(Resource):
@@ -89,7 +91,7 @@ class UserResource(Resource):
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
-        
+
         update_data = api.payload
 
         if 'email' in update_data or 'password' in update_data:
@@ -97,7 +99,7 @@ class UserResource(Resource):
 
         updated_user = facade.update_user(user_id, update_data)
         return serialize_user(updated_user), 200
-    
+
     @jwt_required()
     @api.response(200, 'User deleted successfully')
     @api.response(403, 'Unauthorized action')
@@ -112,10 +114,11 @@ class UserResource(Resource):
         if not user:
             return {"error": "User not found"}, 404
         try:
-            result = facade.delete_user(user_id)
+            facade.delete_user(user_id)
             return {"message": "User deleted successfully"}, 200
         except Exception as e:
             return {"error": str(e)}, 400
+
 
 @api.route('/me')
 class CurrentUser(Resource):

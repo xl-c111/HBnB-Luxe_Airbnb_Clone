@@ -1,11 +1,18 @@
 import '@testing-library/jest-dom';
 
-// Mock localStorage
+// Mock localStorage with actual storage
+const storage = {};
 const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
+  getItem: vi.fn((key) => storage[key] || null),
+  setItem: vi.fn((key, value) => {
+    storage[key] = value.toString();
+  }),
+  removeItem: vi.fn((key) => {
+    delete storage[key];
+  }),
+  clear: vi.fn(() => {
+    Object.keys(storage).forEach(key => delete storage[key]);
+  }),
 };
 
 global.localStorage = localStorageMock;

@@ -15,35 +15,88 @@ api = Namespace('bookings', description='Booking operations')
 
 # API Models
 booking_model = api.model('Booking', {
-    'id': fields.String(readonly=True, description='Booking ID', example='550e8400-e29b-41d4-a716-446655440000'),
-    'place_id': fields.String(required=True, description='Place ID', example='550e8400-e29b-41d4-a716-446655440001'),
-    'guest_id': fields.String(readonly=True, description='Guest ID', example='550e8400-e29b-41d4-a716-446655440002'),
-    'check_in_date': fields.String(required=True, description='Check-in date (YYYY-MM-DD)', example='2025-12-20'),
-    'check_out_date': fields.String(required=True, description='Check-out date (YYYY-MM-DD)', example='2025-12-25'),
-    'total_price': fields.Float(readonly=True, description='Total price in USD', example=2500.00),
-    'status': fields.String(readonly=True, description='Booking status: pending, confirmed, completed, cancelled', example='confirmed')
+    'id': fields.String(
+        readonly=True, description='Booking ID',
+        example='550e8400-e29b-41d4-a716-446655440000'
+    ),
+    'place_id': fields.String(
+        required=True, description='Place ID',
+        example='550e8400-e29b-41d4-a716-446655440001'
+    ),
+    'guest_id': fields.String(
+        readonly=True, description='Guest ID',
+        example='550e8400-e29b-41d4-a716-446655440002'
+    ),
+    'check_in_date': fields.String(
+        required=True, description='Check-in date (YYYY-MM-DD)',
+        example='2025-12-20'
+    ),
+    'check_out_date': fields.String(
+        required=True, description='Check-out date (YYYY-MM-DD)',
+        example='2025-12-25'
+    ),
+    'total_price': fields.Float(
+        readonly=True, description='Total price in USD',
+        example=2500.00
+    ),
+    'status': fields.String(
+        readonly=True,
+        description='Booking status: pending, confirmed, completed, cancelled',
+        example='confirmed'
+    )
 })
 
 booking_create_model = api.model('BookingCreate', {
-    'place_id': fields.String(required=True, description='Place ID', example='550e8400-e29b-41d4-a716-446655440001'),
-    'check_in_date': fields.String(required=True, description='Check-in date (YYYY-MM-DD)', example='2025-12-20'),
-    'check_out_date': fields.String(required=True, description='Check-out date (YYYY-MM-DD)', example='2025-12-25'),
-    'payment_intent_id': fields.String(required=True, description='Stripe Payment Intent ID from successful payment', example='pi_1234567890abcdef')
+    'place_id': fields.String(
+        required=True, description='Place ID',
+        example='550e8400-e29b-41d4-a716-446655440001'
+    ),
+    'check_in_date': fields.String(
+        required=True, description='Check-in date (YYYY-MM-DD)',
+        example='2025-12-20'
+    ),
+    'check_out_date': fields.String(
+        required=True, description='Check-out date (YYYY-MM-DD)',
+        example='2025-12-25'
+    ),
+    'payment_intent_id': fields.String(
+        required=True,
+        description='Stripe Payment Intent ID from successful payment',
+        example='pi_1234567890abcdef'
+    )
 })
 
 availability_model = api.model('Availability', {
-    'place_id': fields.String(required=True, description='Place ID', example='550e8400-e29b-41d4-a716-446655440001'),
-    'check_in_date': fields.String(required=True, description='Check-in date (YYYY-MM-DD)', example='2025-12-20'),
-    'check_out_date': fields.String(required=True, description='Check-out date (YYYY-MM-DD)', example='2025-12-25')
+    'place_id': fields.String(
+        required=True, description='Place ID',
+        example='550e8400-e29b-41d4-a716-446655440001'
+    ),
+    'check_in_date': fields.String(
+        required=True, description='Check-in date (YYYY-MM-DD)',
+        example='2025-12-20'
+    ),
+    'check_out_date': fields.String(
+        required=True, description='Check-out date (YYYY-MM-DD)',
+        example='2025-12-25'
+    )
 })
 
 availability_response = api.model('AvailabilityResponse', {
-    'available': fields.Boolean(description='Whether the place is available for the dates', example=True),
-    'message': fields.String(description='Status message', example='Place is available for selected dates')
+    'available': fields.Boolean(
+        description='Whether the place is available for the dates',
+        example=True
+    ),
+    'message': fields.String(
+        description='Status message',
+        example='Place is available for selected dates'
+    )
 })
 
 error_model = api.model('BookingError', {
-    'error': fields.String(description='Error message', example='Place is not available for selected dates')
+    'error': fields.String(
+        description='Error message',
+        example='Place is not available for selected dates'
+    )
 })
 
 
@@ -74,7 +127,11 @@ def serialize_booking(booking):
         'total_price': booking.total_price,
         'status': booking.status,
         'can_cancel': booking.can_cancel(),
-        'cancellation_deadline': booking.get_cancellation_deadline().isoformat() if booking.status in ['pending', 'confirmed'] else None,
+        'cancellation_deadline': (
+            booking.get_cancellation_deadline().isoformat()
+            if booking.status in ['pending', 'confirmed']
+            else None
+        ),
         'created_at': booking.created_at.isoformat(),
         'updated_at': booking.updated_at.isoformat()
     }
@@ -118,8 +175,13 @@ class BookingList(Resource):
                 return {'error': 'Place not found'}, 404
 
             try:
-                check_in, check_out = _parse_dates(booking_data['check_in_date'], booking_data['check_out_date'])
-                expected_amount_cents = _calculate_amount_cents(place.price, check_in, check_out)
+                check_in, check_out = _parse_dates(
+                    booking_data['check_in_date'],
+                    booking_data['check_out_date']
+                )
+                expected_amount_cents = _calculate_amount_cents(
+                    place.price, check_in, check_out
+                )
             except ValueError as e:
                 return {'error': str(e)}, 400
 
@@ -127,14 +189,24 @@ class BookingList(Resource):
             if not metadata:
                 return {'error': 'Payment intent metadata missing'}, 400
             # Enforce metadata consistency with the booking request
-            if metadata.get('user_id') and metadata.get('user_id') != str(user_id):
+            if (metadata.get('user_id') and
+                    metadata.get('user_id') != str(user_id)):
                 return {'error': 'Payment intent does not belong to this user'}, 400
-            if metadata.get('place_id') and metadata.get('place_id') != str(booking_data['place_id']):
-                return {'error': 'Payment intent does not match the selected place'}, 400
-            if metadata.get('check_in_date') and metadata.get('check_in_date') != booking_data['check_in_date']:
-                return {'error': 'Payment intent check-in date mismatch'}, 400
-            if metadata.get('check_out_date') and metadata.get('check_out_date') != booking_data['check_out_date']:
-                return {'error': 'Payment intent check-out date mismatch'}, 400
+            if (metadata.get('place_id') and
+                    metadata.get('place_id') != str(booking_data['place_id'])):
+                return {
+                    'error': 'Payment intent does not match the selected place'
+                }, 400
+            if (metadata.get('check_in_date') and
+                    metadata.get('check_in_date') != booking_data['check_in_date']):
+                return {
+                    'error': 'Payment intent check-in date mismatch'
+                }, 400
+            if (metadata.get('check_out_date') and
+                    metadata.get('check_out_date') != booking_data['check_out_date']):
+                return {
+                    'error': 'Payment intent check-out date mismatch'
+                }, 400
 
             if payment_intent.amount != expected_amount_cents:
                 return {'error': 'Payment amount does not match booking total'}, 400

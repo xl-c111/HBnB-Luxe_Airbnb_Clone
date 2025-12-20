@@ -4,23 +4,37 @@ from app.services import facade
 from app.extensions import limiter
 
 
-
 api = Namespace('auth', description='Authentication operations')
 
 # Request models
 login_model = api.model('Login', {
-    'email': fields.String(required=True, description='User email address', example='john.doe@example.com'),
-    'password': fields.String(required=True, description='User password (min 8 characters)', example='Strongpass123!')
+    'email': fields.String(
+        required=True,
+        description='User email address',
+        example='john.doe@example.com'
+    ),
+    'password': fields.String(
+        required=True,
+        description='User password (min 8 characters)',
+        example='Strongpass123!'
+    )
 })
 
 # Response models
 login_response = api.model('LoginResponse', {
-    'access_token': fields.String(description='JWT access token', example='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...')
+    'access_token': fields.String(
+        description='JWT access token',
+        example='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+    )
 })
 
 error_response = api.model('ErrorResponse', {
-    'error': fields.String(description='Error message', example='Invalid credentials')
+    'error': fields.String(
+        description='Error message',
+        example='Invalid credentials'
+    )
 })
+
 
 @api.route('/login')
 class Login(Resource):

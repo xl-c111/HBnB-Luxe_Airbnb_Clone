@@ -1,9 +1,8 @@
-import uuid
 from datetime import datetime
 from app.extensions import db
 from app.models.place_amenity import place_amenity
 from .baseclass import BaseModel
-from sqlalchemy.orm import validates, relationship
+from sqlalchemy.orm import validates
 
 
 class Place(BaseModel):
@@ -31,16 +30,14 @@ class Place(BaseModel):
     )
     # many-to-many relationship between Place and Amenity
     amenities = db.relationship(
-    'Amenity',
-    secondary=place_amenity,
-    back_populates='places'
-)
+        'Amenity',
+        secondary=place_amenity,
+        back_populates='places'
+    )
     # One-to-many relationship from Place to Booking
     bookings = db.relationship(
         'Booking', back_populates='place', cascade='all, delete-orphan'
     )
-
-
 
     # ---validates---
 
@@ -88,16 +85,17 @@ class Place(BaseModel):
         self.updated_at = datetime.utcnow()
 
     def add_review(self, review):
-        from app.models.review import Review
         """Add a review to the place."""
-        # self.reviews refers to the reviews attribute of current obj(self), it stores all the reviews for this obj
-        # .append(review) is a built-in list method, it adds the  given items at the end of the list
+        # self.reviews refers to the reviews attribute of current obj(self),
+        # it stores all the reviews for this obj
+        # .append(review) is a built-in list method, it adds the
+        # given items at the end of the list
+        from app.models.review import Review
         if not isinstance(review, Review):
             raise ValueError("Input must be a Review object.")
         self.reviews.append(review)
 
     def update_by_owner_or_admin(self, user, **kwargs):
-        from app.models.user import User
         """Update the attributes of the object based on the provided dictionary"""
         if user != self.owner and not getattr(user, "is_admin", False):
             raise PermissionError(

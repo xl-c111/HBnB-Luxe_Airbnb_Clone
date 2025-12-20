@@ -8,6 +8,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
@@ -17,9 +18,69 @@ export default function LoginPage() {
   // Get the page user was trying to access, or default to homepage
   const from = location.state?.from || '/';
 
+  const validateField = (name, value) => {
+    const errors = { ...fieldErrors };
+
+    if (name === 'email') {
+      if (!value.trim()) {
+        errors.email = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        errors.email = 'Please enter a valid email address';
+      } else {
+        delete errors.email;
+      }
+    } else if (name === 'password') {
+      if (!value) {
+        errors.password = 'Password is required';
+      } else {
+        delete errors.password;
+      }
+    }
+
+    setFieldErrors(errors);
+    return errors;
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (fieldErrors.email) {
+      const errors = { ...fieldErrors };
+      delete errors.email;
+      setFieldErrors(errors);
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (fieldErrors.password) {
+      const errors = { ...fieldErrors };
+      delete errors.password;
+      setFieldErrors(errors);
+    }
+  };
+
+  const handleEmailBlur = () => {
+    validateField('email', email);
+  };
+
+  const handlePasswordBlur = () => {
+    validateField('password', password);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validate all fields
+    const emailErrors = validateField('email', email);
+    const passwordErrors = validateField('password', password);
+    const allErrors = { ...emailErrors, ...passwordErrors };
+
+    if (Object.keys(allErrors).length > 0) {
+      setFieldErrors(allErrors);
+      return;
+    }
+
     setLoading(true);
 
     const result = await login(email, password);
@@ -59,11 +120,14 @@ export default function LoginPage() {
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              onChange={handleEmailChange}
+              onBlur={handleEmailBlur}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               placeholder="you@example.com"
             />
+            {fieldErrors.email && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div>
@@ -74,11 +138,14 @@ export default function LoginPage() {
               type="password"
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              onChange={handlePasswordChange}
+              onBlur={handlePasswordBlur}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               placeholder="••••••••"
             />
+            {fieldErrors.password && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+            )}
           </div>
 
           <Button

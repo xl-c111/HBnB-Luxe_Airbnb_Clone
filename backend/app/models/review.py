@@ -1,9 +1,7 @@
-import uuid
 from datetime import datetime
 from app.extensions import db
 from .baseclass import BaseModel
-from sqlalchemy.orm import validates, relationship
-from sqlalchemy import ForeignKey
+from sqlalchemy.orm import validates
 
 
 class Review(BaseModel):

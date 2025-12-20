@@ -1,5 +1,4 @@
 from app.models.user import User
-from app.extensions import db
 from app.persistence.repository import SQLAlchemyRepository
 
 

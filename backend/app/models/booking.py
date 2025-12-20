@@ -1,8 +1,7 @@
-import uuid
 from datetime import datetime, date, timedelta
 from app.extensions import db
 from .baseclass import BaseModel
-from sqlalchemy.orm import validates, relationship
+from sqlalchemy.orm import validates
 
 
 class Booking(BaseModel):
@@ -84,12 +83,16 @@ class Booking(BaseModel):
             return False
 
         # Cancellation policy: Must cancel at least 48 hours before check-in
-        cancellation_deadline = datetime.combine(self.check_in_date, datetime.min.time()) - timedelta(hours=48)
+        cancellation_deadline = datetime.combine(
+            self.check_in_date, datetime.min.time()
+        ) - timedelta(hours=48)
         return datetime.utcnow() < cancellation_deadline
 
     def get_cancellation_deadline(self):
         """Get the deadline for cancelling this booking"""
-        return datetime.combine(self.check_in_date, datetime.min.time()) - timedelta(hours=48)
+        return datetime.combine(
+            self.check_in_date, datetime.min.time()
+        ) - timedelta(hours=48)
 
     def cancel(self):
         """Cancel the booking"""
@@ -98,7 +101,10 @@ class Booking(BaseModel):
                 raise ValueError(f"Cannot cancel booking with status: {self.status}")
             else:
                 deadline = self.get_cancellation_deadline()
-                raise ValueError(f"Cancellation deadline has passed. Must cancel before {deadline.strftime('%Y-%m-%d %H:%M UTC')}")
+                raise ValueError(
+                    f"Cancellation deadline has passed. Must cancel before "
+                    f"{deadline.strftime('%Y-%m-%d %H:%M UTC')}"
+                )
         self.status = 'cancelled'
         self.updated_at = datetime.utcnow()
 

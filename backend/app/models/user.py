@@ -1,9 +1,8 @@
-import uuid
 from datetime import datetime
 import re
 from app.extensions import db, bcrypt
 from .baseclass import BaseModel
-from sqlalchemy.orm import validates, relationship
+from sqlalchemy.orm import validates
 
 
 class User(BaseModel):

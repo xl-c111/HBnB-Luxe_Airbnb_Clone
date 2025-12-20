@@ -26,24 +26,66 @@ review_model = api.model('PlaceReview', {
 
 # Input model (for creating/updating places - no owner_id)
 place_input_model = api.model('PlaceInput', {
-    'title': fields.String(required=True, description='Title of the place', example='Luxury Beachfront Villa'),
-    'description': fields.String(required=True, description='Description of the place', example='Beautiful 3-bedroom villa with ocean views'),
-    'price': fields.Float(required=True, description='Price per night in USD', example=500.00),
-    'latitude': fields.Float(required=True, description='Latitude coordinate', example=34.0522),
-    'longitude': fields.Float(required=True, description='Longitude coordinate', example=-118.2437)
+    'title': fields.String(
+        required=True, description='Title of the place',
+        example='Luxury Beachfront Villa'
+    ),
+    'description': fields.String(
+        required=True, description='Description of the place',
+        example='Beautiful 3-bedroom villa with ocean views'
+    ),
+    'price': fields.Float(
+        required=True, description='Price per night in USD',
+        example=500.00
+    ),
+    'latitude': fields.Float(
+        required=True, description='Latitude coordinate',
+        example=34.0522
+    ),
+    'longitude': fields.Float(
+        required=True, description='Longitude coordinate',
+        example=-118.2437
+    )
 })
 
 # Output model (for responses - includes owner_id)
 place_model = api.model('Place', {
-    'id': fields.String(readonly=True, description='Place ID', example='550e8400-e29b-41d4-a716-446655440000'),
-    'title': fields.String(required=True, description='Title of the place', example='Luxury Beachfront Villa'),
-    'description': fields.String(description='Description of the place', example='Beautiful 3-bedroom villa with ocean views'),
-    'price': fields.Float(required=True, description='Price per night in USD', example=500.00),
-    'latitude': fields.Float(required=True, description='Latitude coordinate', example=34.0522),
-    'longitude': fields.Float(required=True, description='Longitude coordinate', example=-118.2437),
-    'owner_id': fields.String(description='ID of the property owner', example='550e8400-e29b-41d4-a716-446655440001'),
-    'amenities': fields.List(fields.Nested(amenity_model), description='List of amenities'),
-    'reviews': fields.List(fields.Nested(review_model), description='List of reviews')
+    'id': fields.String(
+        readonly=True, description='Place ID',
+        example='550e8400-e29b-41d4-a716-446655440000'
+    ),
+    'title': fields.String(
+        required=True, description='Title of the place',
+        example='Luxury Beachfront Villa'
+    ),
+    'description': fields.String(
+        description='Description of the place',
+        example='Beautiful 3-bedroom villa with ocean views'
+    ),
+    'price': fields.Float(
+        required=True, description='Price per night in USD',
+        example=500.00
+    ),
+    'latitude': fields.Float(
+        required=True, description='Latitude coordinate',
+        example=34.0522
+    ),
+    'longitude': fields.Float(
+        required=True, description='Longitude coordinate',
+        example=-118.2437
+    ),
+    'owner_id': fields.String(
+        description='ID of the property owner',
+        example='550e8400-e29b-41d4-a716-446655440001'
+    ),
+    'amenities': fields.List(
+        fields.Nested(amenity_model),
+        description='List of amenities'
+    ),
+    'reviews': fields.List(
+        fields.Nested(review_model),
+        description='List of reviews'
+    )
 })
 
 error_model = api.model('Error', {
@@ -62,6 +104,7 @@ def serialize_create_place(place):
         "owner_id": str(place.owner.id) if place.owner else None
     }
 
+
 def serialize_place(place):
     return {
         "id": place.id,
@@ -70,16 +113,34 @@ def serialize_place(place):
         "price": place.price,
         "latitude": place.latitude,
         "longitude": place.longitude,
-        "owner_id": str(place.owner.id) if (place.owner and hasattr(place.owner, 'id')) else (str(place.owner_id) if hasattr(place, 'owner_id') else None),
-        "amenities": [serialize_amenity(a) for a in (place.amenities if hasattr(place.amenities, '__iter__') and not isinstance(place.amenities, str) else [])],
-        "reviews": [serialize_review(r) for r in (place.reviews if hasattr(place.reviews, '__iter__') and not isinstance(place.reviews, str) else [])]
+        "owner_id": str(place.owner.id) if (
+            place.owner and hasattr(place.owner, 'id')
+        ) else (
+            str(place.owner_id) if hasattr(place, 'owner_id') else None
+        ),
+        "amenities": [
+            serialize_amenity(a) for a in (
+                place.amenities if hasattr(
+                    place.amenities, '__iter__'
+                ) and not isinstance(place.amenities, str) else []
+            )
+        ],
+        "reviews": [
+            serialize_review(r) for r in (
+                place.reviews if hasattr(
+                    place.reviews, '__iter__'
+                ) and not isinstance(place.reviews, str) else []
+            )
+        ]
     }
+
 
 def serialize_amenity(amenity):
     return {
         "id": amenity.id,
         "name": amenity.name
     }
+
 
 def serialize_review(review):
     return {
@@ -88,6 +149,7 @@ def serialize_review(review):
         "rating": review.rating,
         "user_id": review.user_id
     }
+
 
 @api.route('/')
 class PlaceList(Resource):
@@ -152,7 +214,10 @@ class PlaceList(Resource):
 @api.route('/<string:place_id>')
 class PlaceResource(Resource):
     @api.doc(
-        description='Retrieve detailed information about a specific property including amenities and reviews',
+        description=(
+            'Retrieve detailed information about a specific property '
+            'including amenities and reviews'
+        ),
         params={'place_id': 'The unique identifier of the place'},
         responses={
             200: ('Place details', place_model),
@@ -257,6 +322,7 @@ class PlaceAmenityResource(Resource):
         except PermissionError as e:
             return {"error": str(e)}, 403
 
+
 @api.route('/<string:place_id>/reviews')
 class PlaceReviewList(Resource):
     @api.response(200, 'Reviews for place retrieved successfully')
@@ -270,7 +336,10 @@ class PlaceReviewList(Resource):
                 'text': review.text,
                 'rating': review.rating,
                 'user_id': review.user_id,
-                'user_name': f"{review.user.first_name} {review.user.last_name}" if review.user else "Anonymous",
+                'user_name': (
+                    f"{review.user.first_name} {review.user.last_name}"
+                    if review.user else "Anonymous"
+                ),
                 'place_id': review.place_id
             })
         return review_list, 200

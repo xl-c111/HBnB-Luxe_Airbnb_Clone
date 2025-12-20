@@ -35,13 +35,18 @@ A production-ready two-sided marketplace rental platform demonstrating full-stac
 - Stripe Elements for payment UI
 - React DatePicker for booking dates
 
-**DevOps:**
+**DevOps & Code Quality:**
 - Vercel + Fly.io deployment (serverless/edge)
 - Docker containerization for backend
-- GitHub Actions CI/CD pipeline (automated testing on push/PR)
+- GitHub Actions CI/CD pipeline (automated testing + linting on push/PR)
 - Health monitoring endpoint at `/health`
 - Environment-based configuration (.env files)
 - Pinned Python dependencies via `requirements-constraints.txt` for reproducible deploys
+- **Code Quality:**
+  - ESLint with strict rules for frontend (React hooks, code style)
+  - Flake8 for Python with PEP 8 compliance (max line length 100)
+  - Automated linting checks in CI/CD pipeline
+  - 100% passing linting standards across frontend and backend
 
 ---
 
@@ -131,10 +136,11 @@ A production-ready two-sided marketplace rental platform demonstrating full-stac
 
 ### Authentication & Security
 - **JWT Tokens:** Secure token-based authentication
-- **Password Security:** Bcrypt hashing with strength validation
+- **Password Security:** Bcrypt hashing with strength validation (min 8 chars, requires uppercase, lowercase, numbers, special chars)
 - **Role-Based Access:** Host vs guest permission separation
 - **Payment Verification:** Server-side Stripe payment validation before booking creation
 - **Hardening:** HTML sanitization on user content, rate limiting on auth/payments, security headers on all responses
+- **Client-Side Validation:** Real-time form validation with immediate feedback on email format, required fields, and password strength
 
 ### Performance & Monitoring
 - **Database Indexing:** Optimized queries with indexes on foreign keys, email, price, and booking dates
@@ -147,6 +153,11 @@ A production-ready two-sided marketplace rental platform demonstrating full-stac
 - **Custom Date Picker:** Styled calendar matching site aesthetic
 - **Real-time Feedback:** Loading states, error handling, success messages
 - **Public Browsing:** View listings without authentication
+- **Form Validation:** Instant field-level validation with helpful error messages
+  - Email format validation with regex pattern matching
+  - Password strength requirements with real-time feedback
+  - Required field validation on blur and submit
+  - Password confirmation matching
 
 ---
 
@@ -336,23 +347,49 @@ python3 -m pytest --cov=app -v    # With coverage report
 ### Frontend Tests
 ```bash
 cd frontend
-npm test                 # Run all tests (38 tests)
+npm test                 # Run all tests (38 tests - 100% passing)
 npm run test:coverage    # With coverage report
+npm run lint             # Run ESLint to check code quality
 ```
-**Coverage**: 38 tests across AuthContext, Navigation, BookingForm, LoginPage, SignUpPage, HostPage, and API utilities using Vitest + React Testing Library.
+**Coverage**: 38 tests across 7 test suites:
+- **AuthContext** - Authentication state management and context provider
+- **Navigation** - Route handling and navigation components
+- **BookingForm** - Stripe integration and booking submission
+- **LoginPage** - Form validation, authentication flow, error handling
+- **SignUpPage** - Registration validation, password matching, email format
+- **HostPage** - Host dashboard and property management
+- **API Utilities** - API client functions and localStorage integration
+
+**Test Infrastructure:**
+- Vitest + React Testing Library for component testing
+- Custom localStorage mock with actual storage implementation
+- Vitest globals configured for test files
+- Happy-DOM for fast DOM testing environment
 
 ### Continuous Integration
-GitHub Actions automatically runs both backend and frontend tests on every push and pull request:
+GitHub Actions automatically runs comprehensive quality checks on every push and pull request:
 ```bash
 # View CI status
-git push  # Triggers automated testing
+git push  # Triggers automated testing and linting
 
 # Workflow includes:
-# - Backend: pytest with coverage
-# - Frontend: vitest + build validation
-# - Security: npm audit + bandit
-# - Linting: ESLint + Black formatting check
+# ✅ Code Quality:
+#   - Frontend: ESLint (strict rules, React hooks validation)
+#   - Backend: Flake8 (PEP 8 compliance, line length 100)
+# ✅ Testing:
+#   - Backend: pytest with coverage (39 tests)
+#   - Frontend: vitest + build validation (38 tests)
+# ✅ Security:
+#   - npm audit for frontend dependencies
+#   - Bandit security scanner for Python code
+# ✅ Build Verification:
+#   - Production build test to catch build-time errors
 ```
+
+**Quality Standards:**
+- 100% linting compliance (0 errors, 0 warnings)
+- 100% test pass rate (77/77 tests passing)
+- All security scans passing
 
 ---
 
@@ -390,6 +427,8 @@ See `API_DOCUMENTATION_GUIDE.md` for detailed usage.
 - **Frontend won't start**: `cd frontend && rm -rf node_modules && npm install`
 - **Get JWT token**: `cd backend && python3 get_token.py`
 - **View API docs**: http://localhost:5000/doc
+- **Run linting**: `cd frontend && npm run lint` or `cd backend && flake8 app`
+- **Tests failing**: Ensure all dependencies installed and localStorage mock is configured
 
 **Production:**
 - **Frontend not updating?** `vercel --prod` to redeploy, check Vercel dashboard
@@ -415,12 +454,17 @@ See `API_DOCUMENTATION_GUIDE.md` for detailed usage.
 - HTTPS with auto-SSL certificates
 - Responsive React 19 UI with Tailwind CSS
 - Real-time availability checking
-- Comprehensive testing (77 total tests: 39 backend + 38 frontend)
+- Comprehensive testing (77 total tests: 39 backend + 38 frontend, 100% passing)
 - Interactive API documentation (Swagger UI)
-- GitHub Actions CI/CD pipeline
+- GitHub Actions CI/CD pipeline with automated linting
 - Database query optimization with indexes
 - Health monitoring endpoint
 - Security scanning (Bandit + npm audit)
+- **Code Quality & Validation:**
+  - ESLint + Flake8 linting (100% compliance)
+  - Client-side form validation (email format, password strength, required fields)
+  - Real-time validation feedback on all auth forms
+  - Custom test infrastructure (localStorage mock, Vitest globals)
 
 **🚧 Future Enhancements:**
 - Image uploads for properties

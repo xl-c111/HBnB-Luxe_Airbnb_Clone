@@ -114,7 +114,9 @@ describe('LoginPage', () => {
   it('has link to signup page', () => {
     render(<LoginPage />, { wrapper });
 
-    const signupLink = screen.getByText(/sign up/i);
+    const signupLinks = screen.getAllByText(/sign up/i);
+    // Should find at least one link with href="/signup"
+    const signupLink = signupLinks.find(link => link.getAttribute('href') === '/signup');
     expect(signupLink).toBeInTheDocument();
     expect(signupLink).toHaveAttribute('href', '/signup');
   });

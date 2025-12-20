@@ -13,6 +13,7 @@ export default function SignUpPage() {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
@@ -22,16 +23,93 @@ export default function SignUpPage() {
   // Get the page user was trying to access, or default to homepage
   const from = location.state?.from || '/';
 
+  const validateField = (name, value) => {
+    const errors = { ...fieldErrors };
+
+    switch (name) {
+      case 'firstName':
+        if (!value.trim()) {
+          errors.firstName = 'First name is required';
+        } else {
+          delete errors.firstName;
+        }
+        break;
+      case 'lastName':
+        if (!value.trim()) {
+          errors.lastName = 'Last name is required';
+        } else {
+          delete errors.lastName;
+        }
+        break;
+      case 'email':
+        if (!value.trim()) {
+          errors.email = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          errors.email = 'Please enter a valid email address';
+        } else {
+          delete errors.email;
+        }
+        break;
+      case 'password':
+        if (!value) {
+          errors.password = 'Password is required';
+        } else if (value.length < 8) {
+          errors.password = 'Password must be at least 8 characters';
+        } else {
+          delete errors.password;
+        }
+        break;
+      case 'confirmPassword':
+        if (!value) {
+          errors.confirmPassword = 'Please confirm your password';
+        } else if (value !== formData.password) {
+          errors.confirmPassword = 'Passwords do not match';
+        } else {
+          delete errors.confirmPassword;
+        }
+        break;
+      default:
+        break;
+    }
+
+    setFieldErrors(errors);
+    return errors;
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      const errors = { ...fieldErrors };
+      delete errors[name];
+      setFieldErrors(errors);
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    validateField(name, value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validate all fields
+    const errors = {};
+    Object.keys(formData).forEach((key) => {
+      const fieldErrors = validateField(key, formData[key]);
+      Object.assign(errors, fieldErrors);
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
@@ -83,10 +161,13 @@ export default function SignUpPage() {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                required
+                onBlur={handleBlur}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                 placeholder="John"
               />
+              {fieldErrors.firstName && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.firstName}</p>
+              )}
             </div>
 
             <div>
@@ -99,10 +180,13 @@ export default function SignUpPage() {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                required
+                onBlur={handleBlur}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                 placeholder="Doe"
               />
+              {fieldErrors.lastName && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.lastName}</p>
+              )}
             </div>
           </div>
 
@@ -116,10 +200,13 @@ export default function SignUpPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              required
+              onBlur={handleBlur}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               placeholder="you@example.com"
             />
+            {fieldErrors.email && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div>
@@ -132,11 +219,14 @@ export default function SignUpPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              required
+              onBlur={handleBlur}
               minLength={6}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               placeholder="••••••••"
             />
+            {fieldErrors.password && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+            )}
           </div>
 
           <div>
@@ -149,11 +239,14 @@ export default function SignUpPage() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              required
+              onBlur={handleBlur}
               minLength={6}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               placeholder="••••••••"
             />
+            {fieldErrors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.confirmPassword}</p>
+            )}
           </div>
 
           <Button

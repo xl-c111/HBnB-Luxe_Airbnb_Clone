@@ -26,4 +26,26 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  // Test files configuration
+  {
+    files: ['**/*.test.{js,jsx}', '**/test/**/*.{js,jsx}', '**/tests/**/*.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        vi: 'readonly',
+        global: 'readonly',
+      },
+    },
+  },
+  // Config files configuration
+  {
+    files: ['*.config.{js,mjs}', '**/*.config.{js,mjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        __dirname: 'readonly',
+        __filename: 'readonly',
+      },
+    },
+  },
 ])

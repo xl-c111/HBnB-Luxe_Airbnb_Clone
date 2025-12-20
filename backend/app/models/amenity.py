@@ -1,7 +1,7 @@
 from datetime import datetime
 from .baseclass import BaseModel
 from app.models.place_amenity import place_amenity
-from sqlalchemy.orm import validates, relationship
+from sqlalchemy.orm import validates
 from app.extensions import db
 
 
@@ -12,17 +12,14 @@ class Amenity(BaseModel):
     description = db.Column(db.String(100), nullable=False)
     number = db.Column(db.Integer, nullable=True)
 
-
     # many to many relationship
     places = db.relationship(
-    'Place',
-    secondary=place_amenity,
-    back_populates='amenities'
-)
-
+        'Place',
+        secondary=place_amenity,
+        back_populates='amenities'
+    )
 
     # ---validates---
-
     @validates('name')
     def validates_name(self, key, value):
         if not isinstance(value, str) or not value.strip():

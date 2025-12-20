@@ -10,7 +10,7 @@ from app.models.booking import Booking
 from app.extensions import db
 import bleach
 from sqlalchemy.orm import selectinload
-from datetime import datetime, date
+from datetime import datetime
 
 
 class HBnBFacade:
@@ -21,7 +21,7 @@ class HBnBFacade:
         self.amenity_repo = SQLAlchemyRepository(Amenity)
         self.booking_repo = BookingRepository()
 
-     #  _________________User Operations____________________
+    #  _________________User Operations____________________
 
     def create_user(self, user_data):
         """Create a new user after checking email uniqueness"""
@@ -157,11 +157,9 @@ class HBnBFacade:
     def get_reviews_for_place(self, place_id):
         return self.review_repo.get_all_by_attribute("place_id", place_id) or []
 
-
-   #  _________________Amenities Operations____________________
+    #  _________________Amenities Operations____________________
 
     # Placeholder method for creating an amenity
-
     def create_amenity(self, amenity_data):
         # Global amenity creation (no implicit place association here)
         required_fields = ['name', 'description', 'number']
@@ -217,7 +215,7 @@ class HBnBFacade:
     def get_all_amenities(self):
         return self.amenity_repo.get_all()
 
- #  _________________Review Operations____________________
+    #  _________________Review Operations____________________
 
     def create_review(self, review_data):
         user = self.user_repo.get(review_data['user_id'])
@@ -280,7 +278,7 @@ class HBnBFacade:
         self.review_repo.delete(review_id)
         return True
 
- #  _________________Booking Operations____________________
+    #  _________________Booking Operations____________________
 
     def create_booking(self, booking_data):
         """Create a new booking with availability check"""
@@ -380,8 +378,11 @@ class HBnBFacade:
 
         # Check permissions: guest or place owner can cancel
         place = self.place_repo.get(booking.place_id)
-        if booking.guest_id != user.id and place.owner_id != user.id and not getattr(user, 'is_admin', False):
-            raise PermissionError("You don't have permission to cancel this booking")
+        if (booking.guest_id != user.id and place.owner_id != user.id and
+                not getattr(user, 'is_admin', False)):
+            raise PermissionError(
+                "You don't have permission to cancel this booking"
+            )
 
         booking.cancel()
         db.session.commit()
