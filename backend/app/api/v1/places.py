@@ -70,9 +70,9 @@ def serialize_place(place):
         "price": place.price,
         "latitude": place.latitude,
         "longitude": place.longitude,
-        "owner_id": str(place.owner.id) if place.owner else None,
-        "amenities": [serialize_amenity(a) for a in place.amenities],
-        "reviews": [serialize_review(r) for r in place.reviews]
+        "owner_id": str(place.owner.id) if (place.owner and hasattr(place.owner, 'id')) else (str(place.owner_id) if hasattr(place, 'owner_id') else None),
+        "amenities": [serialize_amenity(a) for a in (place.amenities if hasattr(place.amenities, '__iter__') and not isinstance(place.amenities, str) else [])],
+        "reviews": [serialize_review(r) for r in (place.reviews if hasattr(place.reviews, '__iter__') and not isinstance(place.reviews, str) else [])]
     }
 
 def serialize_amenity(amenity):
