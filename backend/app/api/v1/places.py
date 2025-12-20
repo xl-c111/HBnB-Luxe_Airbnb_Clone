@@ -130,10 +130,11 @@ class PlaceList(Resource):
             200: ('List of places', [place_model])
         }
     )
-    @api.marshal_list_with(place_model)
+    # @api.marshal_list_with(place_model)  # Temporarily disabled for debugging
     def get(self):
         """Get all property listings"""
-        return [serialize_place(place) for place in facade.get_all_places()]
+        places = facade.get_all_places()
+        return [serialize_place(place) for place in places], 200
 
 
 @api.route('/<string:place_id>')
