@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restx import Api
 from config import DevelopmentConfig
-from app.extensions import db, bcrypt, jwt, limiter
+from app.extensions import db, bcrypt, jwt, limiter, migrate
 from app.api.v1.users import api as users_ns
 from app.api.v1.reviews import api as reviews_ns
 from app.api.v1.places import api as places_ns
@@ -10,6 +10,10 @@ from app.api.v1.auth import api as auth_ns
 from app.api.v1.bookings import api as bookings_ns
 from app.api.v1.payments import api as payments_ns
 import os
+import logging
+from logging.handlers import RotatingFileHandler
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 from dotenv import load_dotenv
 from flask_cors import CORS
 
@@ -31,6 +35,39 @@ def _validate_production_config(app):
         raise RuntimeError(f"Missing required production settings: {missing_list}")
 
 
+def _setup_logging(app):
+    if app.debug or app.testing:
+        return
+
+    log_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "logs"))
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, "hbnb.log")
+
+    handler = RotatingFileHandler(log_path, maxBytes=10_000_000, backupCount=10)
+    formatter = logging.Formatter(
+        "%(asctime)s level=%(levelname)s logger=%(name)s msg=%(message)s"
+    )
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.INFO)
+
+    app.logger.setLevel(logging.INFO)
+    if not any(isinstance(existing, RotatingFileHandler) for existing in app.logger.handlers):
+        app.logger.addHandler(handler)
+
+
+def _init_sentry():
+    dsn = os.getenv("SENTRY_DSN")
+    if not dsn:
+        return
+
+    sentry_sdk.init(
+        dsn=dsn,
+        integrations=[FlaskIntegration()],
+        environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0")),
+    )
+
+
 def create_app(config_class="config.DevelopmentConfig"):
     app = Flask(__name__,
                 static_folder='../base_files',
@@ -46,6 +83,10 @@ def create_app(config_class="config.DevelopmentConfig"):
     jwt.init_app(app)
     bcrypt.init_app(app)
     limiter.init_app(app)
+    migrate.init_app(app, db)
+
+    _setup_logging(app)
+    _init_sentry()
 
     # Configure CORS - Allow frontend origin from config
     frontend_url = app.config.get('FRONTEND_URL', '*')

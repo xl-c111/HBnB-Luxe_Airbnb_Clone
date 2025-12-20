@@ -1,13 +1,25 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
 
-const AuthContext = createContext(null);
+type AuthUser = Record<string, any> | null;
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+type AuthContextValue = {
+  user: AuthUser;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (userData: Record<string, any>) => Promise<{ success: boolean; error?: string }>;
+  logout: () => void;
+  refreshUser: (tokenOverride?: string | null) => Promise<AuthUser>;
+  isAuthenticated: boolean;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AuthUser>(null);
   const [loading, setLoading] = useState(true);
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  const fetchCurrentUser = async (token) => {
+  const fetchCurrentUser = async (token: string) => {
     const response = await fetch(`${API_URL}/api/v1/users/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -15,28 +27,28 @@ export function AuthProvider({ children }) {
     });
 
     if (!response.ok) {
-      throw new Error('Unable to load profile');
+      throw new Error("Unable to load profile");
     }
     return response.json();
   };
 
-  const refreshUser = async (tokenOverride) => {
-    const token = tokenOverride || localStorage.getItem('token');
+  const refreshUser = async (tokenOverride?: string | null) => {
+    const token = tokenOverride || localStorage.getItem("token");
     if (!token) {
-      localStorage.removeItem('user');
+      localStorage.removeItem("user");
       setUser(null);
       return null;
     }
     const profile = await fetchCurrentUser(token);
-    localStorage.setItem('user', JSON.stringify(profile));
+    localStorage.setItem("user", JSON.stringify(profile));
     setUser(profile);
     return profile;
   };
 
   // Check if user is logged in on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
 
     if (token && userData) {
       setUser(JSON.parse(userData));
@@ -49,8 +61,8 @@ export function AuthProvider({ children }) {
       try {
         await refreshUser(token);
       } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         setUser(null);
       } finally {
         setLoading(false);
@@ -59,7 +71,7 @@ export function AuthProvider({ children }) {
     hydrate();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string) => {
     try {
       const response = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
@@ -71,20 +83,21 @@ export function AuthProvider({ children }) {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || error.message || 'Login failed');
+        throw new Error(error.error || error.message || "Login failed");
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.access_token);
+      localStorage.setItem("token", data.access_token);
       await refreshUser(data.access_token);
 
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.message };
+      const message = error instanceof Error ? error.message : "Login failed";
+      return { success: false, error: message };
     }
   };
 
-  const register = async (userData) => {
+  const register = async (userData: Record<string, any>) => {
     try {
       // Register endpoint expects: first_name, last_name, email, password
       const registerData = {
@@ -104,7 +117,7 @@ export function AuthProvider({ children }) {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || error.message || 'Registration failed');
+        throw new Error(error.error || error.message || "Registration failed");
       }
 
       const data = await response.json();
@@ -113,13 +126,14 @@ export function AuthProvider({ children }) {
       // After registration, log the user in
       return await login(userData.email, userData.password);
     } catch (error) {
-      return { success: false, error: error.message };
+      const message = error instanceof Error ? error.message : "Registration failed";
+      return { success: false, error: message };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
   };
 
@@ -139,7 +153,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

@@ -11,6 +11,7 @@ class Config:
     DEBUG = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    RATELIMIT_STORAGE_URI = os.getenv('RATELIMIT_STORAGE_URI', 'memory://')
 
 
 class DevelopmentConfig(Config):
@@ -60,6 +61,11 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SAMESITE = 'Lax'
 
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hour
+    RATELIMIT_STORAGE_URI = (
+        os.getenv('RATELIMIT_STORAGE_URI')
+        or os.getenv('REDIS_URL')
+        or Config.RATELIMIT_STORAGE_URI
+    )
 
 class TestingConfig(Config):
     TESTING = True

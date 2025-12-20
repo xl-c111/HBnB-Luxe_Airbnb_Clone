@@ -5,12 +5,16 @@ Flask-Bcrypt
 Flask-SQLAlchemy
 Flask-JWT-Extended
 Flask-Limiter
+Flask-Migrate
 flask-cors
 Flask-Login
 python-dotenv
 SQLAlchemy
 mysql-connector-python
 PyMySQL
+redis
 stripe
 gunicorn
 bleach
+pytest-cov
+sentry-sdk
