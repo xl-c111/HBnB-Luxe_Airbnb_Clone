@@ -32,7 +32,7 @@ EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/api/v1/status')" || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:8080/health')" || exit 1
 
-# Start gunicorn
-CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 60 run:app
+# Start gunicorn with 1 worker to fit in 256MB RAM
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 60 run:app

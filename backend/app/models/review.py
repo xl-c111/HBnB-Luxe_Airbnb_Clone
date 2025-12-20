@@ -8,6 +8,10 @@ from sqlalchemy import ForeignKey
 
 class Review(BaseModel):
     __tablename__ = 'reviews'
+    __table_args__ = (
+        db.Index('idx_review_place_id', 'place_id'),
+        db.Index('idx_review_user_id', 'user_id'),
+    )
 
     text = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer, nullable=False)

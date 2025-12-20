@@ -9,6 +9,11 @@ class Booking(BaseModel):
     """Booking model for place reservations"""
 
     __tablename__ = 'bookings'
+    __table_args__ = (
+        db.Index('idx_booking_place_id', 'place_id'),
+        db.Index('idx_booking_guest_id', 'guest_id'),
+        db.Index('idx_booking_dates', 'check_in_date', 'check_out_date'),
+    )
 
     place_id = db.Column(db.String(60), db.ForeignKey('places.id'), nullable=False)
     guest_id = db.Column(db.String(60), db.ForeignKey('users.id'), nullable=False)

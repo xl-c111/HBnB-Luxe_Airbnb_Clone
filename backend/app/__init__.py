@@ -123,6 +123,21 @@ def create_app(config_class="config.DevelopmentConfig"):
     api.add_namespace(bookings_ns, path='/api/v1/bookings')
     api.add_namespace(payments_ns, path='/api/v1/payments')
 
+    @app.route('/health')
+    def health_check():
+        """Simple health check endpoint for monitoring"""
+        try:
+            # Check database connection
+            db.session.execute(db.text('SELECT 1'))
+            db_status = 'healthy'
+        except Exception:
+            db_status = 'unhealthy'
+
+        return {
+            'status': 'healthy',
+            'database': db_status
+        }, 200
+
     @app.after_request
     def set_security_headers(response):
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')

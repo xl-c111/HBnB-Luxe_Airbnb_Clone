@@ -38,6 +38,8 @@ A production-ready two-sided marketplace rental platform demonstrating full-stac
 **DevOps:**
 - Vercel + Fly.io deployment (serverless/edge)
 - Docker containerization for backend
+- GitHub Actions CI/CD pipeline (automated testing on push/PR)
+- Health monitoring endpoint at `/health`
 - Environment-based configuration (.env files)
 - Pinned Python dependencies via `requirements-constraints.txt` for reproducible deploys
 
@@ -133,6 +135,12 @@ A production-ready two-sided marketplace rental platform demonstrating full-stac
 - **Role-Based Access:** Host vs guest permission separation
 - **Payment Verification:** Server-side Stripe payment validation before booking creation
 - **Hardening:** HTML sanitization on user content, rate limiting on auth/payments, security headers on all responses
+
+### Performance & Monitoring
+- **Database Indexing:** Optimized queries with indexes on foreign keys, email, price, and booking dates
+- **Health Monitoring:** `/health` endpoint for uptime checks and database connectivity
+- **CI/CD Pipeline:** Automated testing on every push/PR via GitHub Actions
+- **Query Optimization:** Eager loading for relationships to prevent N+1 queries
 
 ### User Experience
 - **Responsive Design:** Mobile-first UI with Tailwind CSS
@@ -244,6 +252,9 @@ infrastructure/
 
 ## API Endpoints
 
+### Health & Monitoring
+- `GET /health` - Health check endpoint (returns database connectivity status)
+
 ### Authentication
 - `POST /api/v1/auth/register` - Create new user
 - `POST /api/v1/auth/login` - Get JWT token
@@ -317,18 +328,31 @@ vercel --prod
 ### Backend Tests
 ```bash
 cd backend
-python3 -m pytest -v              # Run all tests
+python3 -m pytest -v              # Run all tests (39 tests)
 python3 -m pytest --cov=app -v    # With coverage report
 ```
-**Coverage**: 10 suites covering auth, users, places, amenities, reviews, booking/payment validation, and business rules. Uses in-memory SQLite (no MySQL needed).
+**Coverage**: 39 tests across 10 suites covering auth, users, places, amenities, reviews, booking/payment validation, and business rules. Uses in-memory SQLite (no MySQL needed).
 
 ### Frontend Tests
 ```bash
 cd frontend
-npm test                 # Run all tests
+npm test                 # Run all tests (38 tests)
 npm run test:coverage    # With coverage report
 ```
-**Coverage**: 15 tests across AuthContext, BookingForm, Navigation, and Host dashboard auth/listings flows using Vitest + React Testing Library.
+**Coverage**: 38 tests across AuthContext, Navigation, BookingForm, LoginPage, SignUpPage, HostPage, and API utilities using Vitest + React Testing Library.
+
+### Continuous Integration
+GitHub Actions automatically runs both backend and frontend tests on every push and pull request:
+```bash
+# View CI status
+git push  # Triggers automated testing
+
+# Workflow includes:
+# - Backend: pytest with coverage
+# - Frontend: vitest + build validation
+# - Security: npm audit + bandit
+# - Linting: ESLint + Black formatting check
+```
 
 ---
 
@@ -391,8 +415,12 @@ See `API_DOCUMENTATION_GUIDE.md` for detailed usage.
 - HTTPS with auto-SSL certificates
 - Responsive React 19 UI with Tailwind CSS
 - Real-time availability checking
-- Comprehensive testing (Backend: Pytest, Frontend: Vitest)
+- Comprehensive testing (77 total tests: 39 backend + 38 frontend)
 - Interactive API documentation (Swagger UI)
+- GitHub Actions CI/CD pipeline
+- Database query optimization with indexes
+- Health monitoring endpoint
+- Security scanning (Bandit + npm audit)
 
 **🚧 Future Enhancements:**
 - Image uploads for properties
@@ -400,8 +428,8 @@ See `API_DOCUMENTATION_GUIDE.md` for detailed usage.
 - Real-time messaging between hosts and guests
 - Advanced search with filters (location, amenities, price range)
 - Calendar blocking for unavailable dates
-- Increase test coverage to 80%+
 - Database migrations (Flask-Migrate)
+- React Query for better data fetching and caching
 
 ---
 

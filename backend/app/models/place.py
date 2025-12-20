@@ -9,6 +9,10 @@ from sqlalchemy.orm import validates, relationship
 class Place(BaseModel):
 
     __tablename__ = 'places'
+    __table_args__ = (
+        db.Index('idx_place_owner_id', 'owner_id'),
+        db.Index('idx_place_price', 'price'),
+    )
 
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)

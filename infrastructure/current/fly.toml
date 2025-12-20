@@ -9,6 +9,7 @@ primary_region = 'iad'
 [build]
   dockerfile = '../../backend/Dockerfile'
   build-target = ''
+  context = '../../backend'
   ignorefile = '../../backend/.dockerignore'
 
 [env]

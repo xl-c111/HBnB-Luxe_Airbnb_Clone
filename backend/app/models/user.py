@@ -9,7 +9,10 @@ from sqlalchemy.orm import validates, relationship
 class User(BaseModel):
 
     __tablename__ = 'users'
-    
+    __table_args__ = (
+        db.Index('idx_user_email', 'email'),
+    )
+
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
