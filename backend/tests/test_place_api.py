@@ -31,15 +31,18 @@ def test_create_place_success(client, register_user):
     assert response.get_json()["title"] == "Nice Apartment"
 
 
-@pytest.mark.parametrize("field,value", [
-    ("title", ""),
-    ("price", 0),
-    ("price", -5),
-    ("latitude", -91),
-    ("latitude", 91),
-    ("longitude", -181),
-    ("longitude", 181),
-])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("title", ""),
+        ("price", 0),
+        ("price", -5),
+        ("latitude", -91),
+        ("latitude", 91),
+        ("longitude", -181),
+        ("longitude", 181),
+    ],
+)
 def test_create_place_validation_errors(client, register_user, field, value):
     owner = register_user()
     payload = _place_payload()

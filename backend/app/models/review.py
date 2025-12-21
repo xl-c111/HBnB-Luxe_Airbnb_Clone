@@ -5,27 +5,25 @@ from sqlalchemy.orm import validates
 
 
 class Review(BaseModel):
-    __tablename__ = 'reviews'
+    __tablename__ = "reviews"
     __table_args__ = (
-        db.Index('idx_review_place_id', 'place_id'),
-        db.Index('idx_review_user_id', 'user_id'),
+        db.Index("idx_review_place_id", "place_id"),
+        db.Index("idx_review_user_id", "user_id"),
     )
 
     text = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer, nullable=False)
 
-    user_id = db.Column(db.String(60), db.ForeignKey(
-        'users.id'), nullable=False)
-    place_id = db.Column(db.String(60), db.ForeignKey(
-        'places.id'), nullable=False)
+    user_id = db.Column(db.String(60), db.ForeignKey("users.id"), nullable=False)
+    place_id = db.Column(db.String(60), db.ForeignKey("places.id"), nullable=False)
     # Many-to-one relationship from Review to Place
-    place = db.relationship('Place', back_populates='reviews')
+    place = db.relationship("Place", back_populates="reviews")
     # Many-to-one relationship from Review to User
-    user = db.relationship('User', back_populates='reviews')
+    user = db.relationship("User", back_populates="reviews")
 
     # ---validates---
 
-    @validates('text')
+    @validates("text")
     def validate_text(self, key, value):
         if not isinstance(value, str):
             raise ValueError("Text must be a string.")
@@ -34,7 +32,7 @@ class Review(BaseModel):
             raise ValueError("Text must be a non-empty string.")
         return value
 
-    @validates('rating')
+    @validates("rating")
     def validate_rating(self, key, value):
         if not isinstance(value, int):
             raise ValueError("Rating must be an integer.")
@@ -46,13 +44,13 @@ class Review(BaseModel):
 
     def can_update_by(self, user):
         """Check if user can update this review"""
-        return self.user_id == user.id or getattr(user, 'is_admin', False)
+        return self.user_id == user.id or getattr(user, "is_admin", False)
 
     def can_delete_by(self, user):
         """Check if user can delete this review"""
-        return self.user_id == user.id or getattr(user, 'is_admin', False)
+        return self.user_id == user.id or getattr(user, "is_admin", False)
 
-    def update(self, user, new_text=None,  new_rating=None):
+    def update(self, user, new_text=None, new_rating=None):
         if not self.can_update_by(user):
             raise PermissionError("Only author of this review can update it.")
 

@@ -38,9 +38,13 @@ def test_booking_succeeds_with_matching_payment_intent(
             "check_out_date": check_out,
             "expected_amount_cents": str(expected_amount),
         }
-        return FakePaymentIntent(status="succeeded", amount=expected_amount, metadata=metadata)
+        return FakePaymentIntent(
+            status="succeeded", amount=expected_amount, metadata=metadata
+        )
 
-    monkeypatch.setattr("app.api.v1.bookings.stripe.PaymentIntent.retrieve", fake_retrieve)
+    monkeypatch.setattr(
+        "app.api.v1.bookings.stripe.PaymentIntent.retrieve", fake_retrieve
+    )
 
     resp = client.post(
         "/api/v1/bookings/",
@@ -60,7 +64,9 @@ def test_booking_succeeds_with_matching_payment_intent(
     assert data["total_price"] == pytest.approx(expected_amount / 100.0)
 
 
-def test_booking_rejects_amount_mismatch(client, register_user, create_place, monkeypatch):
+def test_booking_rejects_amount_mismatch(
+    client, register_user, create_place, monkeypatch
+):
     owner = register_user()
     place = create_place(owner=owner)["place"]
     guest = register_user()
@@ -77,9 +83,13 @@ def test_booking_rejects_amount_mismatch(client, register_user, create_place, mo
             "expected_amount_cents": str(expected_amount),
         }
         # Intentionally wrong amount to trigger rejection
-        return FakePaymentIntent(status="succeeded", amount=expected_amount - 500, metadata=metadata)
+        return FakePaymentIntent(
+            status="succeeded", amount=expected_amount - 500, metadata=metadata
+        )
 
-    monkeypatch.setattr("app.api.v1.bookings.stripe.PaymentIntent.retrieve", fake_retrieve)
+    monkeypatch.setattr(
+        "app.api.v1.bookings.stripe.PaymentIntent.retrieve", fake_retrieve
+    )
 
     resp = client.post(
         "/api/v1/bookings/",

@@ -6,11 +6,51 @@ import pytest
 @pytest.mark.parametrize(
     "payload,status",
     [
-        ({"first_name": "Jane", "last_name": "Doe", "email": "jane@example.com", "password": "StrongPass1!"}, 201),
-        ({"first_name": "", "last_name": "Doe", "email": "jane2@example.com", "password": "StrongPass1!"}, 400),
-        ({"first_name": "Jane", "last_name": "", "email": "jane3@example.com", "password": "StrongPass1!"}, 400),
-        ({"first_name": "Jane", "last_name": "Doe", "email": "", "password": "StrongPass1!"}, 400),
-        ({"first_name": "Jane", "last_name": "Doe", "email": "invalid-email", "password": "StrongPass1!"}, 400),
+        (
+            {
+                "first_name": "Jane",
+                "last_name": "Doe",
+                "email": "jane@example.com",
+                "password": "StrongPass1!",
+            },
+            201,
+        ),
+        (
+            {
+                "first_name": "",
+                "last_name": "Doe",
+                "email": "jane2@example.com",
+                "password": "StrongPass1!",
+            },
+            400,
+        ),
+        (
+            {
+                "first_name": "Jane",
+                "last_name": "",
+                "email": "jane3@example.com",
+                "password": "StrongPass1!",
+            },
+            400,
+        ),
+        (
+            {
+                "first_name": "Jane",
+                "last_name": "Doe",
+                "email": "",
+                "password": "StrongPass1!",
+            },
+            400,
+        ),
+        (
+            {
+                "first_name": "Jane",
+                "last_name": "Doe",
+                "email": "invalid-email",
+                "password": "StrongPass1!",
+            },
+            400,
+        ),
         ({"first_name": "", "last_name": "", "email": "", "password": ""}, 400),
     ],
 )

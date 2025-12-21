@@ -14,26 +14,26 @@ TEST_USERS = {
     "host": {
         "email": "john.doe@example.com",
         "password": "Strongpass123!",
-        "name": "John Doe (Host)"
+        "name": "John Doe (Host)",
     },
     "guest": {
         "email": "emma.wilson@example.com",
         "password": "Strongpass123!",
-        "name": "Emma Wilson (Guest)"
+        "name": "Emma Wilson (Guest)",
     },
     "host2": {
         "email": "sarah.chen@example.com",
         "password": "Strongpass123!",
-        "name": "Sarah Chen (Host)"
-    }
+        "name": "Sarah Chen (Host)",
+    },
 }
+
 
 def get_token(email, password):
     """Get JWT token from API"""
     try:
         response = requests.post(
-            f"{API_URL}/api/v1/auth/login",
-            json={"email": email, "password": password}
+            f"{API_URL}/api/v1/auth/login", json={"email": email, "password": password}
         )
 
         if response.status_code == 200:
@@ -48,6 +48,7 @@ def get_token(email, password):
     except Exception as e:
         print(f"❌ Error: {e}")
         return None
+
 
 def main():
     print("🔑 JWT Token Generator\n")
@@ -65,7 +66,7 @@ def main():
     user = TEST_USERS[choice]
     print(f"\n🔐 Logging in as {user['name']}...")
 
-    token = get_token(user['email'], user['password'])
+    token = get_token(user["email"], user["password"])
 
     if token:
         print("\n✅ Success! Your JWT token:\n")
@@ -79,8 +80,7 @@ def main():
         # Verify token works
         print("🧪 Testing token...")
         response = requests.get(
-            f"{API_URL}/api/v1/users/me",
-            headers={"Authorization": f"Bearer {token}"}
+            f"{API_URL}/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}
         )
 
         if response.status_code == 200:
@@ -90,6 +90,7 @@ def main():
             print("⚠️  Token generated but verification failed\n")
     else:
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

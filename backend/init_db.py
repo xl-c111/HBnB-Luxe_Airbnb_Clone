@@ -16,7 +16,7 @@ import os
 def init_database():
     """Initialize database tables."""
     # Get configuration from environment or use production by default
-    config_class = os.getenv('FLASK_CONFIG', 'config.ProductionConfig')
+    config_class = os.getenv("FLASK_CONFIG", "config.ProductionConfig")
 
     print(f"Creating app with config: {config_class}")
     app = create_app(config_class)
@@ -30,6 +30,7 @@ def init_database():
 
             # List all tables created
             from sqlalchemy import inspect
+
             inspector = inspect(db.engine)
             tables = inspector.get_table_names()
 

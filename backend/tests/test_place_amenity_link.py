@@ -43,7 +43,9 @@ def test_cannot_attach_with_invalid_ids(client, register_user):
     assert response.status_code == 404
 
 
-def test_only_owner_can_attach_amenity(client, create_place, create_amenity, register_user):
+def test_only_owner_can_attach_amenity(
+    client, create_place, create_amenity, register_user
+):
     created = create_place()
     place = created["place"]
     owner = created["owner"]

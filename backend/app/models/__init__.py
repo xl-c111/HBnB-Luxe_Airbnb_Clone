@@ -4,4 +4,4 @@ from .review import Review
 from .amenity import Amenity
 from .booking import Booking
 
-__all__ = ['User', 'Place', 'Review', 'Amenity', 'Booking']
+__all__ = ["User", "Place", "Review", "Amenity", "Booking"]

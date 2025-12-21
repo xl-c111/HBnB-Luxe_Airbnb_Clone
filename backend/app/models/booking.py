@@ -7,31 +7,33 @@ from sqlalchemy.orm import validates
 class Booking(BaseModel):
     """Booking model for place reservations"""
 
-    __tablename__ = 'bookings'
+    __tablename__ = "bookings"
     __table_args__ = (
-        db.Index('idx_booking_place_id', 'place_id'),
-        db.Index('idx_booking_guest_id', 'guest_id'),
-        db.Index('idx_booking_dates', 'check_in_date', 'check_out_date'),
+        db.Index("idx_booking_place_id", "place_id"),
+        db.Index("idx_booking_guest_id", "guest_id"),
+        db.Index("idx_booking_dates", "check_in_date", "check_out_date"),
     )
 
-    place_id = db.Column(db.String(60), db.ForeignKey('places.id'), nullable=False)
-    guest_id = db.Column(db.String(60), db.ForeignKey('users.id'), nullable=False)
+    place_id = db.Column(db.String(60), db.ForeignKey("places.id"), nullable=False)
+    guest_id = db.Column(db.String(60), db.ForeignKey("users.id"), nullable=False)
     check_in_date = db.Column(db.Date, nullable=False)
     check_out_date = db.Column(db.Date, nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     status = db.Column(
-        db.Enum('pending', 'confirmed', 'cancelled', 'completed', name='booking_status'),
-        default='pending',
-        nullable=False
+        db.Enum(
+            "pending", "confirmed", "cancelled", "completed", name="booking_status"
+        ),
+        default="pending",
+        nullable=False,
     )
 
     # Relationships
-    place = db.relationship('Place', back_populates='bookings')
-    guest = db.relationship('User', back_populates='bookings')
+    place = db.relationship("Place", back_populates="bookings")
+    guest = db.relationship("User", back_populates="bookings")
 
     # --- Validations ---
 
-    @validates('check_in_date', 'check_out_date')
+    @validates("check_in_date", "check_out_date")
     def validate_dates(self, key, value):
         """Validate booking dates"""
         if not isinstance(value, date):
@@ -43,17 +45,17 @@ class Booking(BaseModel):
 
         return value
 
-    @validates('total_price')
+    @validates("total_price")
     def validate_price(self, key, value):
         """Validate total price"""
         if not isinstance(value, (int, float)) or value <= 0:
             raise ValueError("Total price must be a positive number")
         return float(value)
 
-    @validates('status')
+    @validates("status")
     def validate_status(self, key, value):
         """Validate booking status"""
-        valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
+        valid_statuses = ["pending", "confirmed", "cancelled", "completed"]
         if value not in valid_statuses:
             raise ValueError(f"Status must be one of: {', '.join(valid_statuses)}")
         return value
@@ -79,7 +81,7 @@ class Booking(BaseModel):
 
     def can_cancel(self):
         """Check if booking can be cancelled"""
-        if self.status not in ['pending', 'confirmed']:
+        if self.status not in ["pending", "confirmed"]:
             return False
 
         # Cancellation policy: Must cancel at least 48 hours before check-in
@@ -90,14 +92,14 @@ class Booking(BaseModel):
 
     def get_cancellation_deadline(self):
         """Get the deadline for cancelling this booking"""
-        return datetime.combine(
-            self.check_in_date, datetime.min.time()
-        ) - timedelta(hours=48)
+        return datetime.combine(self.check_in_date, datetime.min.time()) - timedelta(
+            hours=48
+        )
 
     def cancel(self):
         """Cancel the booking"""
         if not self.can_cancel():
-            if self.status not in ['pending', 'confirmed']:
+            if self.status not in ["pending", "confirmed"]:
                 raise ValueError(f"Cannot cancel booking with status: {self.status}")
             else:
                 deadline = self.get_cancellation_deadline()
@@ -105,21 +107,21 @@ class Booking(BaseModel):
                     f"Cancellation deadline has passed. Must cancel before "
                     f"{deadline.strftime('%Y-%m-%d %H:%M UTC')}"
                 )
-        self.status = 'cancelled'
+        self.status = "cancelled"
         self.updated_at = datetime.utcnow()
 
     def confirm(self):
         """Confirm the booking"""
-        if self.status != 'pending':
+        if self.status != "pending":
             raise ValueError("Only pending bookings can be confirmed")
-        self.status = 'confirmed'
+        self.status = "confirmed"
         self.updated_at = datetime.utcnow()
 
     def complete(self):
         """Mark booking as completed (after check-out date)"""
-        if self.status != 'confirmed':
+        if self.status != "confirmed":
             raise ValueError("Only confirmed bookings can be completed")
         if date.today() < self.check_out_date:
             raise ValueError("Booking can only be completed after check-out date")
-        self.status = 'completed'
+        self.status = "completed"
         self.updated_at = datetime.utcnow()

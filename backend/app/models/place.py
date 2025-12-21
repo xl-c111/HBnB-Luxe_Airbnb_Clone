@@ -7,10 +7,10 @@ from sqlalchemy.orm import validates
 
 class Place(BaseModel):
 
-    __tablename__ = 'places'
+    __tablename__ = "places"
     __table_args__ = (
-        db.Index('idx_place_owner_id', 'owner_id'),
-        db.Index('idx_place_price', 'price'),
+        db.Index("idx_place_owner_id", "owner_id"),
+        db.Index("idx_place_price", "price"),
     )
 
     title = db.Column(db.String(100), nullable=False)
@@ -18,30 +18,26 @@ class Place(BaseModel):
     price = db.Column(db.Float, nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-    owner_id = db.Column(db.String(60), db.ForeignKey(
-        'users.id'), nullable=False)
+    owner_id = db.Column(db.String(60), db.ForeignKey("users.id"), nullable=False)
 
     # Many-to-one relationship from Owner to Place
-    owner = db.relationship(
-        'User', back_populates='places')
+    owner = db.relationship("User", back_populates="places")
     # One-to-many relationship from Place to Review
     reviews = db.relationship(
-        'Review', back_populates='place', cascade='all, delete-orphan'
+        "Review", back_populates="place", cascade="all, delete-orphan"
     )
     # many-to-many relationship between Place and Amenity
     amenities = db.relationship(
-        'Amenity',
-        secondary=place_amenity,
-        back_populates='places'
+        "Amenity", secondary=place_amenity, back_populates="places"
     )
     # One-to-many relationship from Place to Booking
     bookings = db.relationship(
-        'Booking', back_populates='place', cascade='all, delete-orphan'
+        "Booking", back_populates="place", cascade="all, delete-orphan"
     )
 
     # ---validates---
 
-    @validates('title')
+    @validates("title")
     def validates_title(self, key, value):
         if not isinstance(value, str):
             raise ValueError("Title must be a string.")
@@ -51,27 +47,27 @@ class Place(BaseModel):
         else:
             raise ValueError("Invalid title length!")
 
-    @validates('description')
+    @validates("description")
     def validates_description(self, key, value):
         if not isinstance(value, str):
             raise ValueError("Description must be a string.")
         return value.strip()
 
-    @validates('price')
+    @validates("price")
     def validates_price(self, key, value):
         if isinstance(value, (int, float)) and value > 0.0:
             return value
         else:
             raise ValueError("Invalid value specified for price")
 
-    @validates('latitude')
+    @validates("latitude")
     def validates_latitude(self, key, value):
         if isinstance(value, (int, float)) and -90.0 <= value <= 90.0:
             return value
         else:
             raise ValueError("Invalid value specified for Latitude")
 
-    @validates('longitude')
+    @validates("longitude")
     def validates_longitude(self, key, value):
         if isinstance(value, (int, float)) and -180.0 <= value <= 180.0:
             return value
@@ -91,6 +87,7 @@ class Place(BaseModel):
         # .append(review) is a built-in list method, it adds the
         # given items at the end of the list
         from app.models.review import Review
+
         if not isinstance(review, Review):
             raise ValueError("Input must be a Review object.")
         self.reviews.append(review)
@@ -98,10 +95,15 @@ class Place(BaseModel):
     def update_by_owner_or_admin(self, user, **kwargs):
         """Update the attributes of the object based on the provided dictionary"""
         if user != self.owner and not getattr(user, "is_admin", False):
-            raise PermissionError(
-                "Only the owner or admin can update this place.")
-        allowed_fields = ["title", "description", "price",
-                          "latitude", "longitude", "amenities"]
+            raise PermissionError("Only the owner or admin can update this place.")
+        allowed_fields = [
+            "title",
+            "description",
+            "price",
+            "latitude",
+            "longitude",
+            "amenities",
+        ]
         for key, value in kwargs.items():
             if key in allowed_fields:
                 setattr(self, key, value)
@@ -110,6 +112,7 @@ class Place(BaseModel):
 
     def add_amenity(self, amenity, user):
         from app.models.amenity import Amenity
+
         """Add an amenity to the place."""
         if not isinstance(amenity, Amenity):
             raise ValueError("Input must be a Amenity object.")
@@ -122,10 +125,10 @@ class Place(BaseModel):
 
     def remove_amenity(self, amenity, user):
         from app.models.amenity import Amenity
+
         if not isinstance(amenity, Amenity):
             raise ValueError("Input must be a Amenity object.")
         if user != self.owner and not getattr(user, "is_admin", False):
-            raise PermissionError(
-                "Only the owner or admin can remove amenities.")
+            raise PermissionError("Only the owner or admin can remove amenities.")
         if amenity in self.amenities:
             self.amenities.remove(amenity)

@@ -25,11 +25,11 @@ class HBnBFacade:
 
     def create_user(self, user_data):
         """Create a new user after checking email uniqueness"""
-        existing = self.user_repo.get_user_by_email(user_data['email'])
+        existing = self.user_repo.get_user_by_email(user_data["email"])
         if existing:
             raise ValueError("Email already registered.")
         user = User(**user_data)
-        user.hash_password(user_data['password'])
+        user.hash_password(user_data["password"])
 
         self.user_repo.add(user)
         return user
@@ -62,23 +62,29 @@ class HBnBFacade:
 
     # Placeholder method for creating a place
     def create_place(self, data):
-        required_fields = ['title', 'description',
-                           'price', 'latitude', 'longitude', 'owner_id']
+        required_fields = [
+            "title",
+            "description",
+            "price",
+            "latitude",
+            "longitude",
+            "owner_id",
+        ]
         for field in required_fields:
             if field not in data:
                 raise ValueError(f"Missing field: {field}")
         # Convert owner_id to owner object
-        owner = self.get_user(data['owner_id'])
+        owner = self.get_user(data["owner_id"])
         if not owner:
             raise ValueError("Owner not found")
-        data['owner'] = owner
-        data.pop('owner_id')  # Remove owner_id so Place doesn't get it
+        data["owner"] = owner
+        data.pop("owner_id")  # Remove owner_id so Place doesn't get it
         # Sanitize free-form text fields
-        data['title'] = bleach.clean(data['title'] or "", strip=True)
-        data['description'] = bleach.clean(
-            data['description'] or "",
-            tags=['p', 'br', 'strong', 'em', 'ul', 'ol', 'li'],
-            strip=True
+        data["title"] = bleach.clean(data["title"] or "", strip=True)
+        data["description"] = bleach.clean(
+            data["description"] or "",
+            tags=["p", "br", "strong", "em", "ul", "ol", "li"],
+            strip=True,
         )
         place = Place(**data)
         self.place_repo.add(place)
@@ -87,10 +93,11 @@ class HBnBFacade:
     # Placeholder method for fetching all places
     def get_all_places(self):
         # Use eager loading to fetch amenities and reviews in one query
-        places = db.session.query(Place).options(
-            selectinload(Place.amenities),
-            selectinload(Place.reviews)
-        ).all()
+        places = (
+            db.session.query(Place)
+            .options(selectinload(Place.amenities), selectinload(Place.reviews))
+            .all()
+        )
         return places
 
     # Placeholder method for fetching a place by ID
@@ -105,7 +112,7 @@ class HBnBFacade:
             return None
         # Update the place with the provided data
         update_dict = {}
-        for key in ['title', 'description', 'price', 'latitude', 'longitude']:
+        for key in ["title", "description", "price", "latitude", "longitude"]:
             if key in place_data:
                 update_dict[key] = place_data[key]
         self.place_repo.update(place_id, update_dict)
@@ -127,7 +134,7 @@ class HBnBFacade:
         if not place or not amenity:
             return None
 
-        if place.owner_id != user.id and not getattr(user, 'is_admin', False):
+        if place.owner_id != user.id and not getattr(user, "is_admin", False):
             raise PermissionError("Unauthorized")
         place.add_amenity(amenity, user)
         db.session.commit()
@@ -140,7 +147,7 @@ class HBnBFacade:
         if not place or not amenity:
             raise ValueError("Place or Amenity not found")
 
-        if place.owner_id != user.id and not getattr(user, 'is_admin', False):
+        if place.owner_id != user.id and not getattr(user, "is_admin", False):
             raise PermissionError("Unauthorized")
 
         place.remove_amenity(amenity, user)
@@ -148,10 +155,12 @@ class HBnBFacade:
         return True
 
     def get_place_with_details(self, place_id):
-        place = db.session.query(Place).options(
-            selectinload(Place.amenities),
-            selectinload(Place.reviews)
-        ).filter_by(id=place_id).first()
+        place = (
+            db.session.query(Place)
+            .options(selectinload(Place.amenities), selectinload(Place.reviews))
+            .filter_by(id=place_id)
+            .first()
+        )
         return place
 
     def get_reviews_for_place(self, place_id):
@@ -162,15 +171,15 @@ class HBnBFacade:
     # Placeholder method for creating an amenity
     def create_amenity(self, amenity_data):
         # Global amenity creation (no implicit place association here)
-        required_fields = ['name', 'description', 'number']
+        required_fields = ["name", "description", "number"]
         for field in required_fields:
             if field not in amenity_data or amenity_data[field] is None:
                 raise ValueError(f"Missing or null field: {field}")
 
         amenity = Amenity(
-            name=amenity_data['name'],
-            description=amenity_data['description'],
-            number=amenity_data['number']
+            name=amenity_data["name"],
+            description=amenity_data["description"],
+            number=amenity_data["number"],
         )
 
         self.amenity_repo.add(amenity)
@@ -183,7 +192,8 @@ class HBnBFacade:
 
         if not isinstance(amenity_data, dict):
             raise TypeError(
-                f"Expected amenity_data to be dict, got {type(amenity_data)}")
+                f"Expected amenity_data to be dict, got {type(amenity_data)}"
+            )
 
         existing_amenity = self.amenity_repo.get(amenity_id)
         if not existing_amenity:
@@ -218,28 +228,27 @@ class HBnBFacade:
     #  _________________Review Operations____________________
 
     def create_review(self, review_data):
-        user = self.user_repo.get(review_data['user_id'])
-        place = self.place_repo.get(review_data['place_id'])
+        user = self.user_repo.get(review_data["user_id"])
+        place = self.place_repo.get(review_data["place_id"])
         if user is None or place is None:
             raise ValueError("User or Place not found!")
 
         if place.owner_id == user.id:
             raise ValueError("You cannot review your own place.")
 
-        existing_reviews = self.review_repo.get_all_by_attribute(
-            "place_id", place.id) or []
+        existing_reviews = (
+            self.review_repo.get_all_by_attribute("place_id", place.id) or []
+        )
         if any(review.user.id == user.id for review in existing_reviews):
             raise ValueError("You have already reviewed this place.")
 
         review = Review(
             text=bleach.clean(
-                review_data['text'],
-                tags=['p', 'br', 'strong', 'em'],
-                strip=True
+                review_data["text"], tags=["p", "br", "strong", "em"], strip=True
             ),
-            rating=review_data['rating'],
+            rating=review_data["rating"],
             place=place,
-            user=user
+            user=user,
         )
         self.review_repo.add(review)
         return review
@@ -257,15 +266,13 @@ class HBnBFacade:
         review = self.review_repo.get(review_id)
         if not review:
             return None
-        if review.user.id != user.id and not getattr(user, 'is_admin', False):
+        if review.user.id != user.id and not getattr(user, "is_admin", False):
             raise PermissionError("Not allowed to edit this review.")
-        if 'text' in review_data:
+        if "text" in review_data:
             review.text = bleach.clean(
-                review_data['text'],
-                tags=['p', 'br', 'strong', 'em'],
-                strip=True
+                review_data["text"], tags=["p", "br", "strong", "em"], strip=True
             )
-        review.rating = review_data.get('rating', review.rating)
+        review.rating = review_data.get("rating", review.rating)
         db.session.commit()
         return review
 
@@ -273,7 +280,7 @@ class HBnBFacade:
         review = self.review_repo.get(review_id)
         if not review:
             return None
-        if review.user.id != user.id and not getattr(user, 'is_admin', False):
+        if review.user.id != user.id and not getattr(user, "is_admin", False):
             raise PermissionError("Unauthorized action.")
         self.review_repo.delete(review_id)
         return True
@@ -283,14 +290,14 @@ class HBnBFacade:
     def create_booking(self, booking_data):
         """Create a new booking with availability check"""
         # Validate required fields
-        required_fields = ['place_id', 'guest_id', 'check_in_date', 'check_out_date']
+        required_fields = ["place_id", "guest_id", "check_in_date", "check_out_date"]
         for field in required_fields:
             if field not in booking_data:
                 raise ValueError(f"Missing field: {field}")
 
         # Get place and guest
-        place = self.place_repo.get(booking_data['place_id'])
-        guest = self.user_repo.get(booking_data['guest_id'])
+        place = self.place_repo.get(booking_data["place_id"])
+        guest = self.user_repo.get(booking_data["guest_id"])
 
         if not place:
             raise ValueError("Place not found")
@@ -302,14 +309,14 @@ class HBnBFacade:
             raise ValueError("You cannot book your own place")
 
         # Parse dates
-        check_in = booking_data['check_in_date']
-        check_out = booking_data['check_out_date']
+        check_in = booking_data["check_in_date"]
+        check_out = booking_data["check_out_date"]
 
         # Convert string dates to date objects if needed
         if isinstance(check_in, str):
-            check_in = datetime.strptime(check_in, '%Y-%m-%d').date()
+            check_in = datetime.strptime(check_in, "%Y-%m-%d").date()
         if isinstance(check_out, str):
-            check_out = datetime.strptime(check_out, '%Y-%m-%d').date()
+            check_out = datetime.strptime(check_out, "%Y-%m-%d").date()
 
         # Check availability
         is_available = self.booking_repo.check_availability(
@@ -323,7 +330,7 @@ class HBnBFacade:
             place_id=place.id,
             guest_id=guest.id,
             check_in_date=check_in,
-            check_out_date=check_out
+            check_out_date=check_out,
         )
 
         # Validate dates
@@ -364,9 +371,9 @@ class HBnBFacade:
         """Check if a place is available for given dates"""
         # Convert string dates if needed
         if isinstance(check_in, str):
-            check_in = datetime.strptime(check_in, '%Y-%m-%d').date()
+            check_in = datetime.strptime(check_in, "%Y-%m-%d").date()
         if isinstance(check_out, str):
-            check_out = datetime.strptime(check_out, '%Y-%m-%d').date()
+            check_out = datetime.strptime(check_out, "%Y-%m-%d").date()
 
         return self.booking_repo.check_availability(place_id, check_in, check_out)
 
@@ -378,11 +385,12 @@ class HBnBFacade:
 
         # Check permissions: guest or place owner can cancel
         place = self.place_repo.get(booking.place_id)
-        if (booking.guest_id != user.id and place.owner_id != user.id and
-                not getattr(user, 'is_admin', False)):
-            raise PermissionError(
-                "You don't have permission to cancel this booking"
-            )
+        if (
+            booking.guest_id != user.id
+            and place.owner_id != user.id
+            and not getattr(user, "is_admin", False)
+        ):
+            raise PermissionError("You don't have permission to cancel this booking")
 
         booking.cancel()
         db.session.commit()
@@ -396,7 +404,7 @@ class HBnBFacade:
 
         # Check permissions: only place owner can confirm
         place = self.place_repo.get(booking.place_id)
-        if place.owner_id != user.id and not getattr(user, 'is_admin', False):
+        if place.owner_id != user.id and not getattr(user, "is_admin", False):
             raise PermissionError("Only the place owner can confirm bookings")
 
         booking.confirm()
