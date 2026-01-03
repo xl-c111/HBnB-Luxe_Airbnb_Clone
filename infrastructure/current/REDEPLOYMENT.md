@@ -37,7 +37,7 @@ flyctl secrets set VARIABLE_NAME=new_value
 
 ---
 
-## Database Updates (PlanetScale)
+## Database Updates (TiDB Serverless)
 
 ### Adding/Updating Data
 No redeployment needed - changes are instant through your application.
@@ -46,7 +46,8 @@ No redeployment needed - changes are instant through your application.
 
 **Manual SQL (small changes):**
 ```bash
-pscale shell hbnb-db main
+mysql --ssl-mode=REQUIRED \
+  -h <tidb-host> -P 4000 -u <tidb-user> -p <database>
 # Run your SQL commands
 ALTER TABLE places ADD COLUMN image_url VARCHAR(255);
 ```
@@ -107,7 +108,7 @@ flyctl status -a hbnb-backend
 | Frontend | `vercel --prod` | `/frontend` |
 | Backend | `flyctl deploy` | `/backend` |
 | Secrets | `flyctl secrets set KEY=value` | `/backend` |
-| Database Schema | `pscale shell hbnb-db main` | PlanetScale |
+| Database Schema | `mysql --ssl-mode=REQUIRED -h <tidb-host> -P 4000 -u <tidb-user> -p <database>` | TiDB Serverless |
 
 ---
 

@@ -24,7 +24,7 @@
 
 ### Q: Can you explain the overall architecture of your application?
 
-**A:** The application uses a three-tier architecture. The frontend is a React single-page application hosted on Vercel. The backend is a Flask REST API running on Fly.io in a Docker container. The database is a MySQL instance hosted on PlanetScale. The frontend communicates with the backend through HTTP requests to the REST API, and the backend handles all business logic and database operations.
+**A:** The application uses a three-tier architecture. The frontend is a React single-page application hosted on Vercel. The backend is a Flask REST API running on Fly.io in a Docker container. The database is a MySQL-compatible TiDB Serverless cluster. The frontend communicates with the backend through HTTP requests to the REST API, and the backend handles all business logic and database operations.
 
 ### Q: Why did you choose this architecture?
 
@@ -148,11 +148,11 @@
 
 ### Q: Where is your application deployed?
 
-**A:** The application is deployed across three platforms. The frontend is on Vercel, which provides global CDN distribution and automatic deployments from my GitHub repository. The backend runs on Fly.io in a Docker container with 256MB RAM and 1 CPU. The database is hosted on PlanetScale, which is a serverless MySQL platform. All three services communicate over HTTPS.
+**A:** The application is deployed across three platforms. The frontend is on Vercel, which provides global CDN distribution and automatic deployments from my GitHub repository. The backend runs on Fly.io in a Docker container with 256MB RAM and 1 CPU. The database is hosted on TiDB Serverless, which is a MySQL-compatible serverless platform. All three services communicate over HTTPS.
 
 ### Q: Why did you choose these deployment platforms?
 
-**A:** I chose Vercel for the frontend because it's optimized for React applications and handles builds automatically. Fly.io was chosen for the backend because it supports Docker containers and has a good free tier. PlanetScale was selected for the database because it's serverless, meaning I don't have to manage a database server, and it scales automatically. This combination keeps costs low while providing production-quality infrastructure.
+**A:** I chose Vercel for the frontend because it's optimized for React applications and handles builds automatically. Fly.io was chosen for the backend because it supports Docker containers and has a good free tier. TiDB Serverless was selected for the database because it's serverless and MySQL-compatible, meaning I don't have to manage a database server, and it scales automatically. This combination keeps costs low while providing production-quality infrastructure.
 
 ### Q: How does the Docker deployment work?
 

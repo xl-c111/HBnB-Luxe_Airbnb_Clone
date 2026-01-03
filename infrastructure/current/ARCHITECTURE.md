@@ -1,4 +1,4 @@
-# Production Architecture: Vercel + Fly.io + PlanetScale
+# Production Architecture: Vercel + Fly.io + TiDB Serverless
 
 Complete architecture overview showing how the three services work together to deliver HBnB.
 
@@ -14,11 +14,11 @@ Complete architecture overview showing how the three services work together to d
                      ├──────────────────┬──────────────────────────┐
                      │                  │                          │
             ┌────────▼────────┐  ┌──────▼──────┐         ┌────────▼────────┐
-            │   Vercel CDN    │  │  Fly.io     │         │   PlanetScale   │
+            │   Vercel CDN    │  │  Fly.io     │         │   TiDB   │
             │   (Frontend)    │  │  (Backend)  │         │   (Database)    │
             │                 │  │             │         │                 │
-            │  React + Vite   │  │Flask + Docker│        │ Serverless MySQL│
-            │  Edge Network   │  │ 3 VMs       │         │ Auto-scaling    │
+            │  React + Vite   │  │Flask + Docker│        │ MySQL-compatible│
+            │  Edge Network   │  │ 3 VMs       │         │ TLS enabled    │
             └────────┬────────┘  └──────┬──────┘         └────────▲────────┘
                      │                  │                          │
                      │   API Calls      │    SQL Queries           │
@@ -69,7 +69,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 **Environment Variables:**
 ```bash
-DATABASE_URL=mysql://...@aws.connect.psdb.cloud/...
+DATABASE_URL=mysql+pymysql://user:pass@host:4000/database
 SECRET_KEY=...
 JWT_SECRET_KEY=...
 STRIPE_SECRET_KEY=sk_test_...
@@ -78,21 +78,20 @@ FRONTEND_URL=https://hbnb-luxeairbnbclone.vercel.app
 
 ---
 
-### 3. PlanetScale (Database Layer)
+### 3. TiDB Serverless (Database Layer)
 **What it does:**
 - Stores all application data (users, places, bookings, reviews)
 - Provides MySQL-compatible interface
-- Auto-scales based on usage
-- Handles connection pooling
+- Serverless scaling based on usage
+- TLS-secured connections
 
 **Technology:**
-- Vitess (YouTube's MySQL scaling solution)
+- TiDB Serverless (MySQL-compatible)
 - Serverless architecture
-- No foreign key constraints (enforced at application level)
-
+- 
 **Connection:**
 ```
-mysql+pymysql://username:password@aws.connect.psdb.cloud/database?ssl=true
+mysql+pymysql://username:password@host:4000/database
 ```
 
 ---
@@ -103,7 +102,7 @@ mysql+pymysql://username:password@aws.connect.psdb.cloud/database?ssl=true
 
 ```
 ┌──────┐      ①      ┌─────────┐      ②       ┌────────┐      ③     ┌────────────┐
-│ User │─────────────▶│ Vercel  │─────────────▶│ Fly.io │────────────▶│ PlanetScale│
+│ User │─────────────▶│ Vercel  │─────────────▶│ Fly.io │────────────▶│ TiDB│
 │      │  Visit site  │ (React) │  API Request │ (Flask)│ SQL Query   │  (MySQL)   │
 └──────┘              └─────────┘              └────────┘             └────────────┘
    ▲                                                │                        │
@@ -118,8 +117,8 @@ mysql+pymysql://username:password@aws.connect.psdb.cloud/database?ssl=true
 1. User visits `https://hbnb-luxeairbnbclone.vercel.app`
 2. Vercel serves React app from edge CDN (instant load)
 3. React app calls API: `GET https://hbnb-backend.fly.dev/api/v1/places/`
-4. Fly.io backend connects to PlanetScale
-5. PlanetScale executes: `SELECT * FROM places`
+4. Fly.io backend connects to TiDB
+5. TiDB executes: `SELECT * FROM places`
 6. Results flow back: Database → Backend → Frontend → User
 
 ---
@@ -138,7 +137,7 @@ mysql+pymysql://username:password@aws.connect.psdb.cloud/database?ssl=true
                                              │ ⑤ Save Booking
                                              ▼
                                         ┌────────────┐
-                                        │ PlanetScale│
+                                        │ TiDB│
                                         │  (MySQL)   │
                                         └────────────┘
 ```
@@ -148,7 +147,7 @@ mysql+pymysql://username:password@aws.connect.psdb.cloud/database?ssl=true
 2. Frontend creates Stripe Payment Intent via backend
 3. Backend validates payment with Stripe API
 4. Stripe confirms payment succeeded
-5. Backend saves booking to PlanetScale database
+5. Backend saves booking to TiDB database
 6. Success message returned to user
 
 ---
@@ -171,7 +170,7 @@ Backend (Fly.io)
     │
     │ SQL INSERT/UPDATE/DELETE
     ▼
-Database (PlanetScale)
+Database (TiDB)
     │
     └─► Transaction committed
          (Auto-replicated across regions)
@@ -191,7 +190,7 @@ Backend (Fly.io)
     │
     │ SQL SELECT with JOINs
     ▼
-Database (PlanetScale)
+Database (TiDB)
     │
     ├─► Execute query
     ├─► Return results
@@ -221,7 +220,7 @@ Vercel CDN (hbnb-luxeairbnbclone.vercel.app)
     ↕ HTTPS (TLS 1.3)
 Fly.io API (hbnb-backend.fly.dev)
     ↕ MySQL over TLS
-PlanetScale (aws.connect.psdb.cloud)
+TiDB (aws.connect.psdb.cloud)
 ```
 
 ### Authentication Flow
@@ -280,7 +279,7 @@ This prevents unauthorized websites from calling your API.
            ┌───────────────┼───────────────┐
            │               │               │
      ┌─────▼─────┐   ┌─────▼─────┐   ┌────▼──────┐
-     │  Vercel   │   │  Fly.io   │   │PlanetScale│
+     │  Vercel   │   │  Fly.io   │   │TiDB│
      │  Deploy   │   │  Deploy   │   │  Migrate  │
      │           │   │           │   │           │
      │ Build     │   │ Docker    │   │ SQL       │
@@ -311,7 +310,7 @@ This prevents unauthorized websites from calling your API.
 - **Manual scale:** Can increase to more VMs if needed
 - **Load balancing:** Fly.io distributes requests across VMs
 
-### Database (PlanetScale)
+### Database (TiDB)
 - **Serverless:** Auto-scales connections based on usage
 - **Connection pooling:** Handles bursts efficiently
 - **Read replicas:** Automatic for performance
@@ -329,8 +328,8 @@ vercel logs --prod
 flyctl logs -a hbnb-backend
 flyctl status -a hbnb-backend
 
-# Database (PlanetScale)
-# Via PlanetScale dashboard: Insights tab
+# Database (TiDB)
+# Via TiDB dashboard: Insights tab
 ```
 
 ---
@@ -340,7 +339,7 @@ flyctl status -a hbnb-backend
 **Three-tier architecture:**
 1. **Presentation:** Vercel serves React UI globally
 2. **Application:** Fly.io runs Flask API with business logic
-3. **Data:** PlanetScale stores and manages all data
+3. **Data:** TiDB stores and manages all data
 
 **Communication:**
 - Frontend ↔ Backend: REST API over HTTPS

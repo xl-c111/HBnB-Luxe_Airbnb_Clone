@@ -30,8 +30,9 @@ class ProductionConfig(Config):
 
     DEBUG = False
 
-    # Fix DATABASE_URL to use PyMySQL driver explicitly and remove SSL from URL
-    _db_url = os.getenv("DATABASE_URL")
+    # Fix DATABASE_URL/SQLALCHEMY_DATABASE_URI to use PyMySQL driver explicitly
+    # and remove SSL from URL (handled in engine options).
+    _db_url = os.getenv("DATABASE_URL") or os.getenv("SQLALCHEMY_DATABASE_URI")
     if _db_url:
         # Replace mysql:// with mysql+pymysql://
         if _db_url.startswith("mysql://"):

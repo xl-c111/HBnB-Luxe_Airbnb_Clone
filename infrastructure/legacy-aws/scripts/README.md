@@ -5,7 +5,7 @@ These scripts were used for the original AWS deployment (EC2 + RDS + S3 + CloudF
 **Status**: No longer in use. The application has been migrated to:
 - Frontend: Vercel
 - Backend: Fly.io
-- Database: PlanetScale
+- Database: TiDB Serverless
 
 ## Scripts
 

@@ -1,4 +1,4 @@
-# Infrastructure Migration: AWS → Vercel + Fly.io + PlanetScale
+# Infrastructure Migration: AWS → Vercel + Fly.io + TiDB Serverless
 
 ## Executive Summary
 
@@ -23,7 +23,7 @@ Limit:    Free tier expires after 12 months
 ```
 Frontend: Vercel
 Backend:  Fly.io (3 VMs, 256MB RAM each)
-Database: PlanetScale (Serverless MySQL)
+Database: TiDB Serverless (Serverless MySQL)
 Cost:     $0/month
 Limit:    Free forever
 ```
@@ -46,13 +46,13 @@ Limit:    Free forever
 ### 3. Modern Architecture
 - **Auto-scaling:** Built-in, no configuration needed
 - **Global edge network:** Faster for international users
-- **Serverless database:** PlanetScale uses Vitess (powers GitHub, Slack)
+- **Serverless database:** TiDB Serverless uses Vitess (powers GitHub, Slack)
 - **Zero maintenance:** No OS patches, security updates, or server management
 
 ### 4. Developer Experience
 - **Simpler deployment:** `vercel --prod` vs complex AWS setup
 - **Better debugging:** `fly logs` vs SSH + CloudWatch
-- **Database branching:** PlanetScale branches like Git for safe schema changes
+- **Database branching:** TiDB Serverless branches like Git for safe schema changes
 - **Instant rollbacks:** One command to revert
 
 ## Technical Implementation
@@ -60,7 +60,7 @@ Limit:    Free forever
 ### Database: MySQL Compatibility
 **Kept MySQL** to demonstrate database diversity (other projects use PostgreSQL)
 
-**PlanetScale advantages over RDS:**
+**TiDB Serverless advantages over RDS:**
 - Serverless architecture (no instance management)
 - Built on Vitess (horizontally scalable MySQL)
 - Database branching for safe migrations
@@ -117,7 +117,7 @@ Limit:    Free forever
 
 ### Interview Talking Points
 
-> "I initially deployed on AWS using Terraform to demonstrate infrastructure-as-code skills. After analyzing requirements and costs, I migrated to a modern serverless stack (Vercel + Fly.io + PlanetScale), reducing costs from $30/month to $0 while maintaining 24/7 uptime and production quality.
+> "I initially deployed on AWS using Terraform to demonstrate infrastructure-as-code skills. After analyzing requirements and costs, I migrated to a modern serverless stack (Vercel + Fly.io + TiDB Serverless), reducing costs from $30/month to $0 while maintaining 24/7 uptime and production quality.
 >
 > This migration demonstrates:
 > - Cost optimization skills
@@ -165,7 +165,7 @@ Maintenance:       ✅ Zero (fully managed)
 - Sufficient for demo/portfolio use
 - Frontend handles static assets (offloads backend)
 
-**Database (PlanetScale):** 5GB storage, 1B reads, 10M writes
+**Database (TiDB Serverless):** 5GB storage, 1B reads, 10M writes
 - Current data: <100MB
 - Buffer: 4.9GB for growth
 - Reads/writes well within limits
@@ -174,7 +174,7 @@ Maintenance:       ✅ Zero (fully managed)
 If the project exceeds free tiers:
 - **Fly.io:** $1.94/month for 1 GB transfer
 - **Vercel:** Pro plan $20/month (10x limits)
-- **PlanetScale:** Scaler plan $29/month (10GB)
+- **TiDB Serverless:** Scaler plan $29/month (10GB)
 
 Still cheaper than AWS and only pay if needed.
 
@@ -205,7 +205,7 @@ README.md                                       # Updated architecture docs
 
 To complete the migration:
 
-1. **Set up PlanetScale database**
+1. **Set up TiDB Serverless database**
    - Create account and database
    - Import MySQL data from RDS
    - Get connection string

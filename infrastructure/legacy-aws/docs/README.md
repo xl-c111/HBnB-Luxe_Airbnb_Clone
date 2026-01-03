@@ -1,6 +1,6 @@
 # AWS Deployment Documentation (Archived)
 
-This directory contains documentation for the original AWS deployment that has been migrated to Vercel + Fly.io + PlanetScale.
+This directory contains documentation for the original AWS deployment that has been migrated to Vercel + Fly.io + TiDB Serverless.
 
 ## Contents
 

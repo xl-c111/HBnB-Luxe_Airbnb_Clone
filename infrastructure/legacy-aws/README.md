@@ -10,10 +10,10 @@ This folder contains the original AWS infrastructure setup using Terraform.
 - Database: RDS MySQL db.t3.micro
 - **Cost:** ~$25-30/month
 
-**Current Stack (Vercel + Fly.io + PlanetScale):**
+**Current Stack (Vercel + Fly.io + TiDB Serverless):**
 - Frontend: Vercel
 - Backend: Fly.io
-- Database: PlanetScale MySQL
+- Database: TiDB Serverless MySQL
 - **Cost:** $0/month
 
 ## Migration Reasons
@@ -21,7 +21,7 @@ This folder contains the original AWS infrastructure setup using Terraform.
 1. **Cost Optimization:** Reduced from $25-30/month to $0/month
 2. **Free Tier Limitations:** AWS free tier only lasts 12 months
 3. **Better Developer Experience:** Serverless auto-scaling, global CDN
-4. **Production Quality:** PlanetScale (Vitess), Fly.io edge network
+4. **Production Quality:** TiDB Serverless (Vitess), Fly.io edge network
 5. **24/7 Uptime:** Permanent free tiers vs temporary AWS free tier
 
 ## AWS Infrastructure Details

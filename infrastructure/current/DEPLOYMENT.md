@@ -1,4 +1,4 @@
-# Deployment Guide: Vercel + Fly.io + PlanetScale
+# Deployment Guide: Vercel + Fly.io + TiDB Serverless
 
 Complete guide to deploy HBnB on a $0/month free tier stack with 24/7 uptime.
 
@@ -15,15 +15,14 @@ Backend: Fly.io (Flask + Gunicorn)
   ├─ 3GB outbound bandwidth/month
   └─ 160GB inbound bandwidth
 
-Database: PlanetScale (MySQL)
-  ├─ 5GB storage
-  ├─ 1B row reads/month
-  └─ 10M row writes/month
+Database: TiDB Serverless (MySQL-compatible)
+  ├─ Free tier quotas apply
+  └─ TLS required
 ```
 
 **Total Cost:** $0/month
 **Uptime:** 24/7
-**Free Forever:** Yes
+**Free Tier:** Yes (quota-based)
 
 ---
 
@@ -35,33 +34,25 @@ Install required tools:
 # Fly.io CLI
 curl -L https://fly.io/install.sh | sh
 
-# PlanetScale CLI
-brew install planetscale/tap/pscale
-
 # Vercel CLI
 npm install -g vercel
 
 # Verify installations
 fly version
-pscale version
 vercel --version
 ```
 
 ---
 
-## Step 1: Set Up PlanetScale Database
+## Step 1: Set Up TiDB Serverless Database
 
 ### 1.1 Create Account & Database
 
 ```bash
-# Login to PlanetScale
-pscale auth login
+# Create a TiDB Serverless cluster in TiDB Cloud
+# https://tidbcloud.com
 
-# Create database (US East region for low latency with Fly.io)
-pscale database create hbnb-db --region us-east
-
-# Create main branch
-pscale branch create hbnb-db main
+# Create a database (e.g., hbnb_db) in the cluster
 ```
 
 ### 1.2 Export Current MySQL Data
@@ -76,24 +67,19 @@ mysqldump -h [RDS_ENDPOINT] -u admin -p hbnb_db > hbnb_backup.sql
 mysqldump -u hbnb_user -p hbnb_db > hbnb_backup.sql
 ```
 
-### 1.3 Import to PlanetScale
+### 1.3 Import to TiDB
 
 ```bash
-# Open connection proxy
-pscale connect hbnb-db main --port 3309
-
-# In another terminal, import data
-mysql -h 127.0.0.1 -P 3309 < hbnb_backup.sql
+# Import data using the MySQL client
+mysql --ssl-mode=REQUIRED \
+  -h <tidb-host> -P 4000 -u <tidb-user> -p <database> < hbnb_backup.sql
 ```
 
 ### 1.4 Get Production Connection String
 
 ```bash
-# Create production password
-pscale password create hbnb-db main production-password
-
-# Copy the connection string shown
-# Format: mysql://[user]:[password]@aws.connect.psdb.cloud/hbnb-db?ssl={"ssl_mode":"VERIFY_IDENTITY"}
+# Copy the connection string from TiDB Cloud
+# Format: mysql://user:password@host:4000/database
 ```
 
 **Save this connection string!** You'll need it for Fly.io secrets.
@@ -123,7 +109,8 @@ fly launch --config ../infrastructure/current/fly.toml --no-deploy
 fly secrets set \
   SECRET_KEY="your-super-secret-key-here" \
   JWT_SECRET_KEY="your-jwt-secret-key-here" \
-  SQLALCHEMY_DATABASE_URI="mysql+pymysql://[user]:[password]@aws.connect.psdb.cloud/hbnb-db?ssl_mode=VERIFY_IDENTITY" \
+  DATABASE_URL="mysql+pymysql://user:password@host:4000/database" \
+  SQLALCHEMY_DATABASE_URI="mysql+pymysql://user:password@host:4000/database" \
   STRIPE_SECRET_KEY="sk_test_..." \
   STRIPE_PUBLISHABLE_KEY="pk_test_..."
 
@@ -131,13 +118,7 @@ fly secrets set \
 fly secrets set FLASK_ENV="production"
 ```
 
-**Important:** Replace the PlanetScale connection string format:
-- PlanetScale gives: `mysql://user:pass@host/db?ssl={"ssl_mode":"VERIFY_IDENTITY"}`
-- Fly.io needs: `mysql+pymysql://user:pass@host/db?ssl_mode=VERIFY_IDENTITY`
-
-Changes:
-1. Add `+pymysql` after `mysql`
-2. Change `?ssl={...}` to `?ssl_mode=VERIFY_IDENTITY`
+**Important:** Use the `mysql+pymysql://` format for SQLAlchemy.
 
 ### 2.3 Deploy Backend
 
@@ -243,7 +224,7 @@ fly deploy
 
 1. **Frontend:** Visit `https://hbnb-frontend.vercel.app`
 2. **Backend API:** `https://hbnb-backend.fly.dev/api/v1/status`
-3. **Database:** Login with test account to verify PlanetScale connection
+3. **Database:** Login with test account to verify TiDB Serverless connection
 
 ### 4.2 Test User Flow
 
@@ -323,13 +304,11 @@ vercel ls
 vercel logs [deployment-url]
 ```
 
-**PlanetScale:**
+**TiDB Serverless:**
 ```bash
 # Check database insights
-pscale database show hbnb-db
 
 # View branches
-pscale branch list hbnb-db
 ```
 
 ### Updates
@@ -351,23 +330,19 @@ vercel --prod
 
 ### Database Migrations
 
-PlanetScale supports safe schema changes with branching:
+TiDB Serverless supports safe schema changes with branching:
 
 ```bash
 # Create dev branch
-pscale branch create hbnb-db dev
 
 # Make schema changes on dev branch
-pscale connect hbnb-db dev
 
 # Test changes
 # ...
 
 # Create deploy request
-pscale deploy-request create hbnb-db dev
 
 # Deploy to main
-pscale deploy-request deploy hbnb-db [number]
 ```
 
 ---
@@ -388,8 +363,7 @@ fly doctor  # Diagnose issues
 # Verify connection string
 fly secrets list
 
-# Test PlanetScale connection
-pscale connect hbnb-db main --port 3309
+# Test TiDB Serverless connection
 mysql -h 127.0.0.1 -P 3309 -e "SELECT 1"
 ```
 
@@ -422,8 +396,8 @@ fly dashboard
 - Visit Vercel dashboard → Usage
 - Check: Bandwidth (<100GB/month)
 
-**PlanetScale:**
-- Visit PlanetScale dashboard → Database insights
+**TiDB Serverless:**
+- Visit TiDB Serverless dashboard → Database insights
 - Check: Storage (<5GB), Reads (<1B/month), Writes (<10M/month)
 
 ---
@@ -444,7 +418,7 @@ Already configured in `vercel.json`:
 - Static assets cached for 1 year
 - HTML cached with revalidation
 
-### Optimize PlanetScale Queries
+### Optimize TiDB Queries
 
 ```sql
 -- Add indexes for frequently queried fields
@@ -459,14 +433,14 @@ ALTER TABLE bookings ADD INDEX idx_user (user_id);
 **Deployed URLs:**
 - Frontend: `https://hbnb-frontend.vercel.app`
 - Backend: `https://hbnb-backend.fly.dev`
-- Database: PlanetScale `hbnb-db` (internal)
+- Database: TiDB Serverless `hbnb-db` (internal)
 
 **Cost:** $0/month (was $25-30/month on AWS)
 
 **Free Tier Limits:**
 - Fly.io: 3GB bandwidth/month, 3 VMs
 - Vercel: 100GB bandwidth/month
-- PlanetScale: 5GB storage, 1B reads, 10M writes
+- TiDB Serverless: 5GB storage, 1B reads, 10M writes
 
 **Next Steps:**
 - Monitor usage dashboards
