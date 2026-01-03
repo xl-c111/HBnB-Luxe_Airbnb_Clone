@@ -220,7 +220,7 @@ Vercel CDN (hbnb-luxeairbnbclone.vercel.app)
     ↕ HTTPS (TLS 1.3)
 Fly.io API (hbnb-backend.fly.dev)
     ↕ MySQL over TLS
-TiDB (aws.connect.psdb.cloud)
+TiDB (TiDB Cloud)
 ```
 
 ### Authentication Flow

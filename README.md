@@ -3,7 +3,7 @@
 A portfolio‑grade, full‑stack Airbnb‑style marketplace built with React and Flask. Includes Stripe payments, JWT auth, host/guest flows, and a MySQL‑compatible TiDB Serverless database. Built to demonstrate real production deployment and end‑to‑end product flow.
 
 **Live Demo:** https://hbnb-luxeairbnbclone.vercel.app  
-**Backend API:** https://hbnb-backend.fly.dev
+**Backend API:** https://hbnb-backend.fly.dev/health  
 
 ---
 
@@ -48,7 +48,7 @@ npm run dev
 ---
 
 ## Deployment
-See `infrastructure/current/DEPLOYMENT.md` for end‑to‑end instructions (TiDB + Fly.io + Vercel).
+See `infrastructure/current/DEPLOYMENT-1.md` for end‑to‑end instructions (TiDB + Fly.io + Vercel).
 
 ---
 
