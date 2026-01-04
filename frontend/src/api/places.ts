@@ -1,6 +1,9 @@
 import { properties as propertyMetadata } from "@/data/properties";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const DEFAULT_TIMEOUT_MS = 12000;
+const MAX_RETRIES = 2;
+const RETRY_STATUS = new Set([408, 429, 500, 502, 503, 504]);
 
 type ApiPlace = {
   id: string;
@@ -63,8 +66,48 @@ function enrichPlaceWithMetadata(apiPlace: ApiPlace) {
   };
 }
 
-async function requestJson(url: string) {
-  const response = await fetch(url);
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchWithRetry(url: string, options: RequestInit = {}, retries = MAX_RETRIES) {
+  let attempt = 0;
+  let lastError: unknown = null;
+
+  while (attempt <= retries) {
+    try {
+      const response = await fetchWithTimeout(url, options);
+      if (!response.ok && RETRY_STATUS.has(response.status) && attempt < retries) {
+        const delay = 500 * Math.pow(2, attempt);
+        await sleep(delay);
+        attempt += 1;
+        continue;
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt >= retries) {
+        throw error;
+      }
+      const delay = 500 * Math.pow(2, attempt);
+      await sleep(delay);
+      attempt += 1;
+    }
+  }
+
+  throw lastError || new Error("Request failed");
+}
+
+async function requestJson(url: string, options: RequestInit = {}) {
+  const response = await fetchWithRetry(url, options);
   if (!response.ok) {
     const errorText = await response.text().catch(() => "Request failed");
     throw new Error(errorText || "Request failed");
@@ -103,7 +146,7 @@ export async function fetchPlaceById(id: string, options: { force?: boolean } = 
     if (cached) return cached;
   }
 
-  const response = await fetch(`${API_URL}/api/v1/places/${id}`);
+  const response = await fetchWithRetry(`${API_URL}/api/v1/places/${id}`);
   if (response.status === 404) {
     return null;
   }

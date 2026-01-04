@@ -120,6 +120,8 @@ export function ListingsGrid({ filters }) {
                 <img
                   src={property.image || "/placeholder.svg"}
                   alt={property.name}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">

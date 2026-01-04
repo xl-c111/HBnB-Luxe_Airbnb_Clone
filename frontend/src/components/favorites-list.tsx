@@ -109,7 +109,13 @@ export function FavoritesGrid() {
           className="group bg-white border border-gray-100 rounded-3xl p-4 space-y-4 hover:shadow-lg transition"
         >
           <div className="relative h-48 rounded-2xl overflow-hidden">
-            <img src={place.image || place.images?.[0] || "/placeholder.svg"} alt={place.title} className="w-full h-full object-cover group-hover:scale-105 transition" />
+            <img
+              src={place.image || place.images?.[0] || "/placeholder.svg"}
+              alt={place.title}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover group-hover:scale-105 transition"
+            />
             <div className="absolute top-3 right-3">
               <FavoriteButton placeId={place.id} size="sm" />
             </div>

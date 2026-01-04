@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -20,6 +20,16 @@ export function PropertyDetail({ property }) {
   const [statusError, setStatusError] = useState(null);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!property?.images?.length) return;
+    const preloadTargets = property.images.slice(1).filter((src) => src && src !== "/placeholder.svg");
+    preloadTargets.forEach((src) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+    });
+  }, [property?.images]);
 
   const [startDate, endDate] = dateRange;
   const nights = useMemo(() => {
@@ -300,6 +310,9 @@ export function PropertyDetail({ property }) {
             <img
               src={property.images[0]}
               alt={property.name}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="w-full h-full object-cover"
             />
           </div>
@@ -311,6 +324,8 @@ export function PropertyDetail({ property }) {
                   <img
                     src={image}
                     alt={`${property.name} ${index + 2}`}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -323,6 +338,8 @@ export function PropertyDetail({ property }) {
               <img
                 src={property.images[3]}
                 alt={`${property.name} 4`}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>

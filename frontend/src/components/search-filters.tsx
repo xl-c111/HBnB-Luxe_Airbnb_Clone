@@ -197,7 +197,13 @@ export function SearchFilters() {
           {filteredResults.map((place) => (
             <Link to={`/property/${place.id}`} key={place.id} className="group bg-white rounded-3xl border border-gray-100 p-4 space-y-3 hover:shadow-lg transition">
               <div className="relative h-56 rounded-2xl overflow-hidden">
-                <img src={place.image || "/placeholder.svg"} alt={place.title} className="w-full h-full object-cover group-hover:scale-105 transition" />
+                <img
+                  src={place.image || "/placeholder.svg"}
+                  alt={place.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover group-hover:scale-105 transition"
+                />
                 <div className="absolute top-3 right-3">
                   <FavoriteButton placeId={place.id} size="sm" />
                 </div>

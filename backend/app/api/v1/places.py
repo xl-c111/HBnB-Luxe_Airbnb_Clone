@@ -4,6 +4,9 @@ from app.services import facade
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 api = Namespace("places", description="Place operations")
+CACHE_HEADERS = {
+    "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=300"
+}
 
 amenity_model = api.model(
     "PlaceAmenity",
@@ -223,7 +226,7 @@ class PlaceList(Resource):
                 }
             )
 
-        return result, 200
+        return result, 200, CACHE_HEADERS
 
 
 @api.route("/<string:place_id>")
@@ -245,7 +248,7 @@ class PlaceResource(Resource):
         if not places:
             return {"error": "Place not found"}, 404
         # Fetch the place by ID
-        return serialize_place(places), 200
+        return serialize_place(places), 200, CACHE_HEADERS
 
     @api.doc(
         description="Update property details (owner only)",

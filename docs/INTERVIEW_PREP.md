@@ -170,6 +170,10 @@
 
 **A:** I use several monitoring approaches. The health endpoint provides basic uptime monitoring. I integrated Sentry for error tracking, which captures exceptions and sends them to a dashboard where I can see stack traces and error frequencies. Fly.io provides logs that I can view with `fly logs` to debug issues. For the frontend, Vercel provides deployment logs and analytics showing page loads and errors.
 
+### Q: What did you do to make the site load faster for users?
+
+**A:** I focused on real-world speed and reliability. I moved the Fly.io backend to the same region as my TiDB database (Singapore) to cut cross-region latency. On the frontend, I split routes with dynamic imports so only the page you visit is loaded. I also optimized image loading: the hero image loads first, other images load lazily, and I prefetch the gallery in the background. For reliability, I added short retries with timeouts on API calls and a user-friendly retry message on the property page. On the backend, I added short cache headers for place listing and detail responses to smooth traffic spikes.
+
 ---
 
 ## 9. Challenges & Problem Solving

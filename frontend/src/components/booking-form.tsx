@@ -160,7 +160,13 @@ export function BookingForm({ bookingDetails }) {
           <div className="bg-white rounded-3xl shadow-lg p-6">
             <div className="flex gap-4">
               <div className="relative w-32 h-24 rounded-2xl overflow-hidden flex-shrink-0">
-                <img src={displayProperty.image} alt={displayProperty.name} className="w-full h-full object-cover" />
+                <img
+                  src={displayProperty.image}
+                  alt={displayProperty.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <h3 className="font-medium text-lg">{displayProperty.name}</h3>
