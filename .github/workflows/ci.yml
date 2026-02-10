@@ -36,7 +36,7 @@ jobs:
       - name: Check code formatting
         working-directory: ./backend
         run: |
-          pip install black
+          pip install black==25.11.0
           black --check app/ tests/
         continue-on-error: true
 

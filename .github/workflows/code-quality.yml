@@ -22,7 +22,7 @@ jobs:
       - name: Install lint dependencies
         run: |
           cd backend
-          pip install flake8 black pylint
+          pip install flake8 black==25.11.0 pylint
 
       - name: Run flake8
         run: |
