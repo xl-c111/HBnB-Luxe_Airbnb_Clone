@@ -15,6 +15,7 @@ __pycache__/
 backend/.env
 backend/.env.production
 frontend/.env*
+!frontend/.env.example
 
 # IDE
 .vscode/
